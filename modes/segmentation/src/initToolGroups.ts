@@ -5,6 +5,7 @@ const brushInstanceNames = {
   SphereEraser: 'SphereEraser',
   ThresholdCircularBrush: 'ThresholdCircularBrush',
   ThresholdSphereBrush: 'ThresholdSphereBrush',
+  SmartBrush: 'SmartBrush',
 };
 
 const brushStrategies = {
@@ -14,6 +15,7 @@ const brushStrategies = {
   SphereEraser: 'ERASE_INSIDE_SPHERE',
   ThresholdCircularBrush: 'THRESHOLD_INSIDE_CIRCLE',
   ThresholdSphereBrush: 'THRESHOLD_INSIDE_SPHERE',
+  SmartBrush: 'SMART_BRUSH',
 };
 
 function createTools(utilityModule) {
@@ -40,6 +42,7 @@ function createTools(utilityModule) {
         { toolName: toolNames.StackScroll },
         { toolName: toolNames.Magnify },
         { toolName: toolNames.SegmentationDisplay },
+        { toolName: toolNames.SmartBrush },
       ]),
     disabled: [{ toolName: toolNames.ReferenceLines }],
   };

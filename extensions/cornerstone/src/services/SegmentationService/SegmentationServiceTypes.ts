@@ -20,6 +20,8 @@ type Segment = {
   isVisible: boolean;
   // whether the segment is locked
   isLocked: boolean;
+
+  typeNodle: string;
 };
 
 type Segmentation = {

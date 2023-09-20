@@ -584,7 +584,7 @@ class SegmentationService extends PubSubService {
       };
 
       return {
-        label: SegmentLabel || `Segment ${SegmentNumber}`,
+        label: JSON.parse(SegmentLabel).name || `Segment ${SegmentNumber}`,
         segmentIndex: Number(SegmentNumber),
         category: SegmentedPropertyCategoryCodeSequence
           ? SegmentedPropertyCategoryCodeSequence.CodeMeaning
@@ -598,6 +598,7 @@ class SegmentationService extends PubSubService {
         opacity: 255,
         isVisible: true,
         isLocked: false,
+        typeNodle: JSON.parse(SegmentLabel).type,
       };
     });
 
@@ -1439,6 +1440,65 @@ class SegmentationService extends PubSubService {
 
   public setSegmentLabel(segmentationId: string, segmentIndex: number, label: string) {
     this._setSegmentLabel(segmentationId, segmentIndex, label);
+  }
+
+  public setSegmentType(segmentationId: string, segmentIndex: number, type: string) {
+    this._setSegmentType(segmentationId, segmentIndex, type);
+  }
+
+  private _setSegmentType(
+    segmentationId: string,
+    segmentIndex: number,
+    type: string,
+    suppressEvents = false
+  ) {
+    const segmentation = this.getSegmentation(segmentationId);
+
+    if (segmentation === undefined) {
+      throw new Error(`no segmentation for segmentationId: ${segmentationId}`);
+    }
+
+    const segmentInfo = segmentation.segments[segmentIndex];
+
+    if (segmentInfo === undefined) {
+      throw new Error(`Segment ${segmentIndex} not yet added to segmentation: ${segmentationId}`);
+    }
+
+    segmentInfo.typeNodle = type;
+
+    if (suppressEvents === false) {
+      // this._setSegmentationModified(segmentationId);
+      this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
+        segmentation,
+      });
+    }
+  }
+
+  public async calculateSegmentCapacity(segmentationId, segmentIndex) {
+    return new Promise(resolve => {
+      const labelmapVolume = this.getLabelmapVolume(segmentationId);
+
+      const { dimensions, spacing } = labelmapVolume;
+      const scalarData = labelmapVolume.getScalarData();
+
+      const frameLength = dimensions[0] * dimensions[1];
+      const numFrames = dimensions[2];
+
+      let voxelIndex = 0;
+      let numPixels = 0;
+
+      for (let frame = 0; frame < numFrames; frame++) {
+        for (let p = 0; p < frameLength; p++) {
+          if (scalarData[voxelIndex] === segmentIndex) {
+            numPixels++;
+          }
+
+          voxelIndex++;
+        }
+      }
+
+      resolve(numPixels * spacing[0] * spacing[1] * spacing[2]);
+    });
   }
 
   private _setSegmentLabel(

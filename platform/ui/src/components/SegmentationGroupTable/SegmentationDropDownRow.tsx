@@ -81,6 +81,12 @@ function SegmentationDropDownRow({
                       onSegmentationDownload(activeSegmentation.id);
                     },
                   },
+                  {
+                    title: 'Save',
+                    onClick: () => {
+                      console.log('save');
+                    },
+                  },
                 ]
               : []),
           ]}

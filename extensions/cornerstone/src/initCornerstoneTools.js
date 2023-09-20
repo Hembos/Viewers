@@ -33,6 +33,8 @@ import {
 import CalibrationLineTool from './tools/CalibrationLineTool';
 import ImageOverlayViewerTool from './tools/ImageOverlayViewerTool';
 
+import { SmartBrsuh } from './smartSegmentation/smartBrush';
+
 export default function initCornerstoneTools(configuration = {}) {
   CrosshairsTool.isAnnotation = false;
   ReferenceLinesTool.isAnnotation = false;
@@ -66,6 +68,8 @@ export default function initCornerstoneTools(configuration = {}) {
   addTool(RectangleScissorsTool);
   addTool(SphereScissorsTool);
   addTool(ImageOverlayViewerTool);
+
+  addTool(SmartBrsuh);
 
   // Modify annotation tools to use dashed lines on SR
   const annotationStyle = {
@@ -111,6 +115,7 @@ const toolNames = {
   RectangleScissors: RectangleScissorsTool.toolName,
   SphereScissors: SphereScissorsTool.toolName,
   ImageOverlayViewer: ImageOverlayViewerTool.toolName,
+  SmartBrsuh: SmartBrsuh.toolName,
 };
 
 export { toolNames };

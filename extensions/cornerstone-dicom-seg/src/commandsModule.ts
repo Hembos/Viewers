@@ -237,15 +237,17 @@ const commandsModule = ({
       labelmapObj.segmentsOnLabelmap.forEach(segmentIndex => {
         // segmentation service already has a color for each segment
         const segment = segmentationInOHIF?.segments[segmentIndex];
-        const { label, color } = segment;
+        const { label, color, typeNodle } = segment;
 
         const RecommendedDisplayCIELabValue = dcmjs.data.Colors.rgb2DICOMLAB(
           color.slice(0, 3).map(value => value / 255)
         ).map(value => Math.round(value));
 
+        const segmentLabel = '{"name": "' + label + '",' + '"type": "' + typeNodle + '"}';
+
         const segmentMetadata = {
           SegmentNumber: segmentIndex.toString(),
-          SegmentLabel: label,
+          SegmentLabel: segmentLabel,
           SegmentAlgorithmType: 'MANUAL',
           SegmentAlgorithmName: 'OHIF Brush',
           RecommendedDisplayCIELabValue,
@@ -337,6 +339,9 @@ const commandsModule = ({
 
       return naturalizedReport;
     },
+    saveSegmentation: async ({ segmentationId }) => {
+      console.log('save');
+    },
   };
 
   const definitions = {
@@ -360,6 +365,9 @@ const commandsModule = ({
     },
     storeSegmentation: {
       commandFn: actions.storeSegmentation,
+    },
+    saveSegmentation: {
+      commandFn: actions.saveSegmentation,
     },
   };
 

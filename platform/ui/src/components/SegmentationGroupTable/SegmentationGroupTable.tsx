@@ -6,6 +6,7 @@ import SegmentationDropDownRow from './SegmentationDropDownRow';
 import NoSegmentationRow from './NoSegmentationRow';
 import AddSegmentRow from './AddSegmentRow';
 import SegmentationGroupSegment from './SegmentationGroupSegment';
+import { Select, Icon, Button } from '../../components';
 
 const SegmentationGroupTable = ({
   segmentations,
@@ -28,6 +29,8 @@ const SegmentationGroupTable = ({
   onSegmentAdd,
   onSegmentDelete,
   onSegmentEdit,
+  onSegmentTypeEdit,
+  onSegmentCapacityCalc,
   onToggleSegmentationVisibility,
   onToggleSegmentVisibility,
   onToggleSegmentLock,
@@ -69,6 +72,12 @@ const SegmentationGroupTable = ({
   const activeSegmentation = segmentations?.find(
     segmentation => segmentation.id === activeSegmentationId
   );
+
+  const segmentTypes = [
+    { label: 'type1', value: 'type1' },
+    { label: 'type2', value: 'type2' },
+    { label: 'type3', value: 'type3' },
+  ];
 
   return (
     <div className="flex min-h-0 flex-col bg-black text-[13px] font-[300]">
@@ -122,6 +131,44 @@ const SegmentationGroupTable = ({
             </div>
           )}
         </div>
+        {activeSegmentation && activeSegmentation.segmentCount > 0 && (
+          <div className="group mx-0.5 mt-[8px] flex items-center">
+            <Select
+              id="segment-type-select"
+              isClearable={false}
+              onChange={option => {
+                onSegmentTypeEdit(
+                  activeSegmentation.id,
+                  activeSegmentation.activeSegmentIndex,
+                  option.value
+                );
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <Icon
+                    name={'chevron-down-new'}
+                    className="mr-2"
+                  />
+                ),
+              }}
+              isSearchable={false}
+              options={segmentTypes}
+              value={segmentTypes?.find(
+                o =>
+                  o.value ===
+                  activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.typeNodle
+              )}
+              className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
+            />
+            <Button
+              onClick={() => {
+                onSegmentCapacityCalc(activeSegmentation.id, activeSegmentation.activeSegmentIndex);
+              }}
+            >
+              Capacity
+            </Button>
+          </div>
+        )}
         {activeSegmentation && (
           <div className="ohif-scrollbar mt-1.5 flex min-h-0 flex-col overflow-y-hidden">
             {activeSegmentation?.segments?.map(segment => {
@@ -193,6 +240,8 @@ SegmentationGroupTable.propTypes = {
   onSegmentAdd: PropTypes.func.isRequired,
   onSegmentDelete: PropTypes.func.isRequired,
   onSegmentEdit: PropTypes.func.isRequired,
+  onSegmentTypeEdit: PropTypes.func.isRequired,
+  onSegmentCapacityCalc: PropTypes.func.isRequired,
   onToggleSegmentationVisibility: PropTypes.func.isRequired,
   onToggleSegmentVisibility: PropTypes.func.isRequired,
   onToggleSegmentLock: PropTypes.func.isRequired,
@@ -222,6 +271,8 @@ SegmentationGroupTable.defaultProps = {
   onSegmentAdd: () => {},
   onSegmentDelete: () => {},
   onSegmentEdit: () => {},
+  onSegmentTypeEdit: () => {},
+  onSegmentCapacityCalc: () => {},
   onToggleSegmentationVisibility: () => {},
   onToggleSegmentVisibility: () => {},
   onToggleSegmentLock: () => {},

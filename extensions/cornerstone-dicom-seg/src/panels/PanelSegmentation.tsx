@@ -13,7 +13,7 @@ export default function PanelSegmentation({
   extensionManager,
   configuration,
 }) {
-  const { segmentationService, uiDialogService } = servicesManager.services;
+  const { segmentationService, uiDialogService, uiNotificationService } = servicesManager.services;
 
   const { t } = useTranslation('PanelSegmentation');
 
@@ -94,6 +94,21 @@ export default function PanelSegmentation({
 
       segmentationService.setSegmentLabel(segmentationId, segmentIndex, label);
     });
+  };
+
+  const onSegmentTypeEdit = (segmentationId, segmentIndex, newType) => {
+    segmentationService.setSegmentType(segmentationId, segmentIndex, newType);
+  };
+
+  const onSegmentCapacityCalc = (segmentationId, segmentIndex) => {
+    segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value =>
+      uiNotificationService.show({
+        title: 'Segment capacity',
+        message: value,
+        type: 'info',
+        duration: 3000,
+      })
+    );
   };
 
   const onSegmentationEdit = segmentationId => {
@@ -221,6 +236,8 @@ export default function PanelSegmentation({
           onSegmentationEdit={onSegmentationEdit}
           onSegmentClick={onSegmentClick}
           onSegmentEdit={onSegmentEdit}
+          onSegmentTypeEdit={onSegmentTypeEdit}
+          onSegmentCapacityCalc={onSegmentCapacityCalc}
           onSegmentAdd={onSegmentAdd}
           onSegmentColorClick={onSegmentColorClick}
           onSegmentDelete={onSegmentDelete}
