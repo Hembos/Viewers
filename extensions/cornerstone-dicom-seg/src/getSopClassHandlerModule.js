@@ -10,7 +10,7 @@ const sopClassUids = ['1.2.840.10008.5.1.4.1.1.66.4'];
 let loadPromises = {};
 
 function _getDisplaySetsFromSeries(instances, servicesManager, extensionManager) {
-  const instance = instances[0];
+  const instance = instances[instances.length - 1];
 
   const {
     StudyInstanceUID,

@@ -11,6 +11,7 @@ function SegmentationDropDownRow({
   onSegmentationEdit,
   onSegmentationDownload,
   storeSegmentation,
+  saveSegmentation,
   onSegmentationDelete,
   onSegmentationAdd,
 }) {
@@ -84,7 +85,7 @@ function SegmentationDropDownRow({
                   {
                     title: 'Save',
                     onClick: () => {
-                      console.log('save');
+                      saveSegmentation(activeSegmentation.id);
                     },
                   },
                 ]
@@ -154,6 +155,7 @@ SegmentationDropDownRow.propTypes = {
   onSegmentationEdit: PropTypes.func,
   onSegmentationDownload: PropTypes.func,
   storeSegmentation: PropTypes.func,
+  saveSegmentation: PropTypes.func,
   onSegmentationDelete: PropTypes.func,
   onSegmentationAdd: PropTypes.func,
 };

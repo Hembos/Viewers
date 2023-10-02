@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { PanelSection } from '../../components';
+import { Label, PanelSection } from '../../components';
 import SegmentationConfig from './SegmentationConfig';
 import SegmentationDropDownRow from './SegmentationDropDownRow';
 import NoSegmentationRow from './NoSegmentationRow';
@@ -14,6 +14,8 @@ const SegmentationGroupTable = ({
   segmentationConfig,
   // UI show/hide
   disableEditing,
+  showROIVolume,
+  ROIVolume,
   showAddSegmentation,
   showAddSegment,
   showDeleteSegment,
@@ -24,6 +26,7 @@ const SegmentationGroupTable = ({
   onSegmentationDelete,
   onSegmentationDownload,
   storeSegmentation,
+  saveSegmentation,
   // segment handlers
   onSegmentClick,
   onSegmentAdd,
@@ -74,9 +77,12 @@ const SegmentationGroupTable = ({
   );
 
   const segmentTypes = [
-    { label: 'type1', value: 'type1' },
-    { label: 'type2', value: 'type2' },
-    { label: 'type3', value: 'type3' },
+    { label: 'Solid', value: 'Solid' },
+    { label: 'Part solid', value: 'Part solid' },
+    { label: 'Non solid (GGN)', value: 'Non solid (GGN)' },
+    { label: 'Juxtapleural', value: 'Juxtapleural' },
+    { label: 'Airway nodule', value: 'Airway nodule' },
+    { label: 'Atypical pulmonary cyst', value: 'Atypical pulmonary cyst' },
   ];
 
   return (
@@ -122,6 +128,7 @@ const SegmentationGroupTable = ({
                 onSegmentationEdit={onSegmentationEdit}
                 onSegmentationDownload={onSegmentationDownload}
                 storeSegmentation={storeSegmentation}
+                saveSegmentation={saveSegmentation}
                 onSegmentationAdd={onSegmentationAdd}
                 onToggleSegmentationVisibility={onToggleSegmentationVisibility}
               />
@@ -132,42 +139,53 @@ const SegmentationGroupTable = ({
           )}
         </div>
         {activeSegmentation && activeSegmentation.segmentCount > 0 && (
-          <div className="group mx-0.5 mt-[8px] flex items-center">
-            <Select
-              id="segment-type-select"
-              isClearable={false}
-              onChange={option => {
-                onSegmentTypeEdit(
-                  activeSegmentation.id,
-                  activeSegmentation.activeSegmentIndex,
-                  option.value
-                );
-              }}
-              components={{
-                DropdownIndicator: () => (
-                  <Icon
-                    name={'chevron-down-new'}
-                    className="mr-2"
-                  />
-                ),
-              }}
-              isSearchable={false}
-              options={segmentTypes}
-              value={segmentTypes?.find(
-                o =>
-                  o.value ===
-                  activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.typeNodle
-              )}
-              className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
-            />
-            <Button
-              onClick={() => {
-                onSegmentCapacityCalc(activeSegmentation.id, activeSegmentation.activeSegmentIndex);
-              }}
-            >
-              Capacity
-            </Button>
+          <div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <Select
+                id="segment-type-select"
+                isClearable={false}
+                onChange={option => {
+                  onSegmentTypeEdit(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex,
+                    option.value
+                  );
+                }}
+                components={{
+                  DropdownIndicator: () => (
+                    <Icon
+                      name={'chevron-down-new'}
+                      className="mr-2"
+                    />
+                  ),
+                }}
+                isSearchable={false}
+                options={segmentTypes}
+                value={segmentTypes?.find(
+                  o =>
+                    o.value ===
+                    activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.typeNodle
+                )}
+                className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
+              />
+              <Button
+                onClick={() => {
+                  onSegmentCapacityCalc(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex
+                  );
+                }}
+              >
+                Volume
+              </Button>
+            </div>
           </div>
+        )}
+        {activeSegmentation && activeSegmentation.segmentCount > 0 && showROIVolume && (
+          <Label
+            className="text-[15px] text-white"
+            text={ROIVolume}
+          ></Label>
         )}
         {activeSegmentation && (
           <div className="ohif-scrollbar mt-1.5 flex min-h-0 flex-col overflow-y-hidden">
@@ -229,6 +247,8 @@ SegmentationGroupTable.propTypes = {
   disableEditing: PropTypes.bool,
   showAddSegmentation: PropTypes.bool,
   showAddSegment: PropTypes.bool,
+  showROIVolume: PropTypes.bool,
+  ROIVolume: PropTypes.string,
   showDeleteSegment: PropTypes.bool,
   onSegmentationAdd: PropTypes.func.isRequired,
   onSegmentationEdit: PropTypes.func.isRequired,
@@ -236,6 +256,7 @@ SegmentationGroupTable.propTypes = {
   onSegmentationDelete: PropTypes.func.isRequired,
   onSegmentationDownload: PropTypes.func.isRequired,
   storeSegmentation: PropTypes.func.isRequired,
+  saveSegmentation: PropTypes.func.isRequired,
   onSegmentClick: PropTypes.func.isRequired,
   onSegmentAdd: PropTypes.func.isRequired,
   onSegmentDelete: PropTypes.func.isRequired,
@@ -259,6 +280,8 @@ SegmentationGroupTable.defaultProps = {
   segmentations: [],
   disableEditing: false,
   showAddSegmentation: true,
+  showROIVolume: false,
+  ROIVolume: '',
   showAddSegment: true,
   showDeleteSegment: true,
   onSegmentationAdd: () => {},
@@ -267,6 +290,7 @@ SegmentationGroupTable.defaultProps = {
   onSegmentationDelete: () => {},
   onSegmentationDownload: () => {},
   storeSegmentation: () => {},
+  saveSegmentation: () => {},
   onSegmentClick: () => {},
   onSegmentAdd: () => {},
   onSegmentDelete: () => {},

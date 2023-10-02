@@ -339,8 +339,39 @@ const commandsModule = ({
 
       return naturalizedReport;
     },
-    saveSegmentation: async ({ segmentationId }) => {
-      console.log('save');
+    saveSegmentation: async ({ segmentationId, dataSource }) => {
+      const segmentation = segmentationService.getSegmentation(segmentationId);
+
+      if (!segmentation) {
+        throw new Error('No segmentation found');
+      }
+
+      const { label } = segmentation;
+      const SeriesDescription = label;
+
+      const SOPClassUID = displaySetService.activeDisplaySets[1].SOPClassUID;
+      // const SOPInstanceUID = displaySetService.activeDisplaySets[1].SOPInstanceUID;
+      const SeriesInstanceUID = displaySetService.activeDisplaySets[1].SeriesInstanceUID;
+      const StudyInstanceUID = displaySetService.activeDisplaySets[1].StudyInstanceUID;
+
+      const generatedData = actions.generateSegmentation({
+        segmentationId,
+        options: {
+          SeriesDescription,
+          SOPClassUID,
+          // SOPInstanceUID,
+          SeriesInstanceUID,
+          StudyInstanceUID,
+        },
+      });
+
+      if (!generatedData || !generatedData.dataset) {
+        throw new Error('Error during segmentation generation');
+      }
+
+      const { dataset: naturalizedReport } = generatedData;
+
+      await dataSource.store.dicom(naturalizedReport);
     },
   };
 

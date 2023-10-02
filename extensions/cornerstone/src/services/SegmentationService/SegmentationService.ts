@@ -1497,6 +1497,8 @@ class SegmentationService extends PubSubService {
         }
       }
 
+      console.log(cache.getCacheSize(), cache.getMaxCacheSize());
+
       resolve(numPixels * spacing[0] * spacing[1] * spacing[2]);
     });
   }

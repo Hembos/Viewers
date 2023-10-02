@@ -23,6 +23,8 @@ export default function PanelSegmentation({
   );
 
   const [segmentations, setSegmentations] = useState(() => segmentationService.getSegmentations());
+  const [showROIVolume, setShowROIVolume] = useState(false);
+  const [ROIVolume, setROIVolume] = useState('');
 
   useEffect(() => {
     // ~~ Subscription
@@ -101,14 +103,23 @@ export default function PanelSegmentation({
   };
 
   const onSegmentCapacityCalc = (segmentationId, segmentIndex) => {
-    segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value =>
-      uiNotificationService.show({
-        title: 'Segment capacity',
-        message: value,
-        type: 'info',
-        duration: 3000,
-      })
-    );
+    // segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value =>
+    //   uiNotificationService.show({
+    //     title: 'roi volume (mm³)',
+    //     message: value.toFixed(3),
+    //     type: 'info',
+    //     duration: 3000,
+    //   })
+    // );
+    segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value => {
+      setROIVolume('roi volume (mm³): ' + value.toFixed(2));
+
+      setShowROIVolume(true);
+
+      setTimeout(function () {
+        setShowROIVolume(false);
+      }, 3000);
+    });
   };
 
   const onSegmentationEdit = segmentationId => {
@@ -220,6 +231,15 @@ export default function PanelSegmentation({
     });
   };
 
+  const saveSegmentation = segmentationId => {
+    const datasources = extensionManager.getActiveDataSource();
+
+    commandsManager.runCommand('saveSegmentation', {
+      segmentationId,
+      dataSource: datasources[0],
+    });
+  };
+
   return (
     <>
       <div className="flex min-h-0 flex-auto select-none flex-col justify-between">
@@ -227,12 +247,15 @@ export default function PanelSegmentation({
           title={t('Segmentations')}
           segmentations={segmentations}
           disableEditing={configuration.disableEditing}
+          showROIVolume={showROIVolume}
+          ROIVolume={ROIVolume}
           activeSegmentationId={selectedSegmentationId || ''}
           onSegmentationAdd={onSegmentationAdd}
           onSegmentationClick={onSegmentationClick}
           onSegmentationDelete={onSegmentationDelete}
           onSegmentationDownload={onSegmentationDownload}
           storeSegmentation={storeSegmentation}
+          saveSegmentation={saveSegmentation}
           onSegmentationEdit={onSegmentationEdit}
           onSegmentClick={onSegmentClick}
           onSegmentEdit={onSegmentEdit}
