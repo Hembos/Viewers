@@ -79,7 +79,6 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
     if (!viewports?.size || activeViewportId === undefined) {
       return;
     }
-
     const viewport = viewports.get(activeViewportId);
 
     if (!viewport) {
@@ -118,6 +117,7 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
     const events = [
       segmentationService.EVENTS.SEGMENTATION_ADDED,
       segmentationService.EVENTS.SEGMENTATION_UPDATED,
+      segmentationService.EVENTS.SEGMENTATION_REMOVED,
     ];
 
     const unsubscriptions = [];
@@ -134,10 +134,12 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
       unsubscriptions.push(unsubscribe);
     });
 
+    updateActiveTool();
+
     return () => {
       unsubscriptions.forEach(unsubscribe => unsubscribe());
     };
-  }, [activeViewportId, viewports, segmentationService]);
+  }, [activeViewportId, viewports, segmentationService, updateActiveTool]);
 
   /**
    * Update the active tool when the toolbar state changes
@@ -416,7 +418,7 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
             },
             {
               type: 'custom',
-              id: 'threshold-range',
+              id: 'segmentation-threshold-range',
               children: () => {
                 return (
                   <div>

@@ -1131,15 +1131,10 @@ class SegmentationService extends PubSubService {
     if (!segmentation) {
       throw new Error(`Segmentation with segmentationId ${segmentationId} not found.`);
     }
-
     segmentation.hydrated = true;
 
     // Not all segmentations have dipslaysets, some of them are derived in the client
-    try {
-      this._setDisplaySetIsHydrated(segmentationId, true);
-    } catch (error) {
-      console.warn(error);
-    }
+    this._setDisplaySetIsHydrated(segmentationId, true);
 
     if (!suppressEvents) {
       this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
@@ -1151,6 +1146,11 @@ class SegmentationService extends PubSubService {
   private _setDisplaySetIsHydrated(displaySetUID: string, isHydrated: boolean): void {
     const { displaySetService } = this.servicesManager.services;
     const displaySet = displaySetService.getDisplaySetByUID(displaySetUID);
+
+    if (!displaySet) {
+      return;
+    }
+
     displaySet.isHydrated = isHydrated;
     displaySetService.setDisplaySetMetadataInvalidated(displaySetUID, false);
   }
@@ -1295,7 +1295,6 @@ class SegmentationService extends PubSubService {
     }
 
     const { colorLUTIndex } = segmentation;
-
     this._removeSegmentationFromCornerstone(segmentationId);
 
     // Delete associated colormap
@@ -1309,12 +1308,18 @@ class SegmentationService extends PubSubService {
     if (wasActive) {
       const remainingSegmentations = this._getSegmentations();
 
-      if (remainingSegmentations.length) {
-        const { id } = remainingSegmentations[0];
+      const remainingHydratedSegmentations = remainingSegmentations.filter(
+        segmentation => segmentation.hydrated
+      );
+
+      if (remainingHydratedSegmentations.length) {
+        const { id } = remainingHydratedSegmentations[0];
 
         this._setActiveSegmentationForToolGroup(id, this._getFirstToolGroupId(), false);
       }
     }
+
+    this._setDisplaySetIsHydrated(segmentationId, false);
 
     this._broadcastEvent(this.EVENTS.SEGMENTATION_REMOVED, {
       segmentationId,
