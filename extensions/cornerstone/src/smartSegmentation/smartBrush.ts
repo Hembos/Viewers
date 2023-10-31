@@ -15,7 +15,7 @@ import {
   config as segmentationConfig,
 } from '@cornerstonejs/tools/dist/esm/stateManagement/segmentation';
 
-import { execSmartBrush } from './execSmartBrush';
+import { execSmartBrush, propogate_segment } from './execSmartBrush';
 
 export class SmartBrsuh extends BaseTool {
   static toolName: string = 'SmartBrush';
@@ -98,8 +98,6 @@ export class SmartBrsuh extends BaseTool {
     evt.preventDefault();
 
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
-
-    console.log('pre click');
 
     return true;
   };
@@ -192,4 +190,47 @@ export class SmartBrsuh extends BaseTool {
   private _deactivateDraw = (element: HTMLDivElement): void => {
     element.removeEventListener(Events.MOUSE_CLICK, this._clickCallback as EventListener);
   };
+
+  public propogate() {
+    const toolGroupId = this.toolGroupId;
+
+    const activeSegmentationRepresentation =
+      activeSegmentation.getActiveSegmentationRepresentation(toolGroupId);
+    if (!activeSegmentationRepresentation) {
+      console.warn('No active segmentation detected, create one before using the brush tool');
+      return;
+    }
+
+    const { segmentationRepresentationUID, segmentationId, type } =
+      activeSegmentationRepresentation;
+    const segmentIndex = segmentIndexController.getActiveSegmentIndex(segmentationId);
+
+    const viewportId = window.services.viewportGridService.getActiveViewportId();
+
+    const viewport = window.services.cornerstoneViewportService.getCornerstoneViewport(viewportId);
+
+    const imageIndex = viewport.getCurrentImageIdIndex();
+
+    const { representationData } = segmentationState.getSegmentation(segmentationId);
+
+    const { volumeId } = representationData[type] as LabelmapSegmentationData;
+    const segmentation = cache.getVolume(volumeId);
+
+    const actors = viewport.getActors();
+
+    const firstVolumeActorUID = actors[0].uid;
+    const imageVolume = cache.getVolume(firstVolumeActorUID);
+
+    const { radius, sensitivity } = this.configuration;
+
+    propogate_segment({
+      imageIndex,
+      segmentIndex,
+      segmentation,
+      segmentationId,
+      viewport,
+      radius,
+      imageVolume,
+    });
+  }
 }

@@ -1,6 +1,4 @@
 import { Types } from '@cornerstonejs/core';
-import { vec3 } from 'gl-matrix';
-import { getCanvasEllipseCorners } from '@cornerstonejs/tools/dist/esm/utilities/math/ellipse';
 import { utilities as csUtils } from '@cornerstonejs/core';
 import { triggerSegmentationDataModified } from '@cornerstonejs/tools/dist/esm/stateManagement/segmentation/triggerSegmentationEvents';
 
@@ -144,6 +142,8 @@ export function execSmartBrush(
   const width = bbox[2] - bbox[0];
   const height = bbox[3] - bbox[1];
 
+  console.log(bbox);
+
   const intensities = new Float32Array(memoryChanVese.buffer, frameLength * 4 + 16, width * height);
   for (let i = 0; i < height; i++) {
     for (let j = 0; j < width; j++) {
@@ -172,6 +172,8 @@ export function execSmartBrush(
       }
     }
   }
+  console.log(width, height);
+  console.log(mask);
 
   const buffer = new Float32Array(
     memoryChanVese.buffer,
@@ -182,7 +184,7 @@ export function execSmartBrush(
     width,
     height,
     (frameLength + 4 + width * height) * 4,
-    500,
+    1000,
     0.2,
     0.5,
     0.5,
@@ -210,5 +212,209 @@ export function execSmartBrush(
 
   chanVeseExports.then(value => console.log(value));
 
+  triggerSegmentationDataModified(segmentationId, arrayOfSlices);
+}
+
+export function propogate_segment(options) {
+  const { imageIndex, segmentIndex, segmentation, segmentationId, viewport, radius, imageVolume } =
+    options;
+
+  const { imageData, dimensions } = segmentation;
+  const scalarData = segmentation.getScalarData();
+  const { voiRange } = viewport.getProperties();
+  const imageScalarData = imageVolume.getScalarData();
+
+  const frameLength = dimensions[0] * dimensions[1];
+  const lableMapChanVese = new Int32Array(memoryChanVese.buffer, 0, frameLength);
+  const bbox = new Int32Array(memoryChanVese.buffer, frameLength * 4, 4);
+
+  const modifiedSlicesToUse = new Set() as Set<number>;
+
+  for (let next = 1; next < radius; next++) {
+    const curImage = imageIndex - next;
+    const prevImage = curImage + 1;
+
+    for (let i = 0; i < dimensions[0]; i++) {
+      for (let j = 0; j < dimensions[1]; j++) {
+        const pixelIndex = frameLength * prevImage + i * dimensions[0] + j;
+        lableMapChanVese[i * dimensions[0] + j] = scalarData[pixelIndex];
+      }
+    }
+
+    getBboxFromLabelMap(frameLength * 4, segmentIndex, dimensions[1], dimensions[0], 0);
+
+    const width = bbox[2] - bbox[0] + 1;
+    const height = bbox[3] - bbox[1] + 1;
+
+    console.log(curImage, bbox);
+
+    const intensities = new Float32Array(
+      memoryChanVese.buffer,
+      frameLength * 4 + 16,
+      width * height
+    );
+    const mask = new Int32Array(
+      memoryChanVese.buffer,
+      (frameLength + 4 + width * height) * 4,
+      width * height
+    );
+    const buffer = new Float32Array(
+      memoryChanVese.buffer,
+      (frameLength + 4 + 2 * width * height) * 4
+    );
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        const pixelIndex = bbox[0] + j + (bbox[1] + i) * dimensions[0] + curImage * frameLength;
+        let intensity = imageScalarData[pixelIndex];
+
+        if (intensity > voiRange.upper) {
+          intensity = voiRange.upper;
+        } else if (intensity < voiRange.lower) {
+          intensity = voiRange.lower;
+        }
+
+        intensities[i * width + j] =
+          (intensity - voiRange.lower) / (voiRange.upper - voiRange.lower);
+      }
+    }
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        if (lableMapChanVese[(i + bbox[1]) * dimensions[0] + (j + bbox[0])] === segmentIndex) {
+          mask[i * width + j] = 1;
+        }
+      }
+    }
+
+    runChanVese(
+      (frameLength + 4) * 4,
+      width,
+      height,
+      (frameLength + 4 + width * height) * 4,
+      1000,
+      0.2,
+      0.5,
+      0.5,
+      (frameLength + 4 + 2 * width * height) * 4
+    );
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        const pixelIndex =
+          dimensions[0] * dimensions[1] * curImage + (bbox[1] + i) * dimensions[0] + (bbox[0] + j);
+
+        if (mask[i * width + j] === 1) {
+          scalarData[pixelIndex] = segmentIndex;
+        }
+      }
+    }
+
+    modifiedSlicesToUse.add(curImage);
+  }
+
+  for (let next = 1; next < radius; next++) {
+    const curImage = imageIndex + next;
+    const prevImage = curImage - 1;
+
+    for (let i = 0; i < dimensions[0]; i++) {
+      for (let j = 0; j < dimensions[1]; j++) {
+        const pixelIndex = frameLength * prevImage + i * dimensions[0] + j;
+        lableMapChanVese[i * dimensions[0] + j] = scalarData[pixelIndex];
+      }
+    }
+
+    getBboxFromLabelMap(frameLength * 4, segmentIndex, dimensions[1], dimensions[0], 0);
+
+    const width = bbox[2] - bbox[0] + 1;
+    const height = bbox[3] - bbox[1] + 1;
+
+    console.log(curImage, bbox);
+
+    const intensities = new Float32Array(
+      memoryChanVese.buffer,
+      frameLength * 4 + 16,
+      width * height
+    );
+    const mask = new Int32Array(
+      memoryChanVese.buffer,
+      (frameLength + 4 + width * height) * 4,
+      width * height
+    );
+    const buffer = new Float32Array(
+      memoryChanVese.buffer,
+      (frameLength + 4 + 2 * width * height) * 4
+    );
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        const pixelIndex = bbox[0] + j + (bbox[1] + i) * dimensions[0] + curImage * frameLength;
+        let intensity = imageScalarData[pixelIndex];
+
+        if (intensity > voiRange.upper) {
+          intensity = voiRange.upper;
+        } else if (intensity < voiRange.lower) {
+          intensity = voiRange.lower;
+        }
+
+        intensities[i * width + j] =
+          (intensity - voiRange.lower) / (voiRange.upper - voiRange.lower);
+      }
+    }
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        if (lableMapChanVese[(i + bbox[1]) * dimensions[0] + (j + bbox[0])] === segmentIndex) {
+          mask[i * width + j] = 1;
+        }
+      }
+    }
+
+    runChanVese(
+      (frameLength + 4) * 4,
+      width,
+      height,
+      (frameLength + 4 + width * height) * 4,
+      1000,
+      0.2,
+      0.5,
+      0.5,
+      (frameLength + 4 + 2 * width * height) * 4
+    );
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        const pixelIndex =
+          dimensions[0] * dimensions[1] * curImage + (bbox[1] + i) * dimensions[0] + (bbox[0] + j);
+
+        if (mask[i * width + j] === 1) {
+          scalarData[pixelIndex] = segmentIndex;
+        }
+      }
+    }
+
+    modifiedSlicesToUse.add(curImage);
+  }
+
+  // for (let i = imageIndex - radius; i < imageIndex + radius; i++) {
+  //   if (i < 0 || i >= dimensions[2]) {
+  //     continue;
+  //   }
+
+  //   for (let h = 0; h < height; h++) {
+  //     for (let w = 0; w < width; w++) {
+  //       const pixelIndex = frameLength * i + (bbox[1] + h) * dimensions[0] + (bbox[0] + w);
+  //       const tmpIndex = frameLength * imageIndex + (bbox[1] + h) * dimensions[0] + (bbox[0] + w);
+
+  //       if (scalarData[tmpIndex] === segmentIndex) {
+  //         scalarData[pixelIndex] = segmentIndex;
+  //       }
+  //     }
+  //   }
+
+  //   modifiedSlicesToUse.add(i);
+  // }
+
+  const arrayOfSlices: number[] = Array.from(modifiedSlicesToUse);
   triggerSegmentationDataModified(segmentationId, arrayOfSlices);
 }

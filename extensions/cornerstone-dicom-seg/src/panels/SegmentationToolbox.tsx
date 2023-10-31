@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState, useReducer } from 'react';
 import { AdvancedToolbox, InputDoubleRange, useViewportGrid } from '@ohif/ui';
 import { Types } from '@ohif/extension-cornerstone';
 import { utilities } from '@cornerstonejs/tools';
+import { LegacyButton } from '@ohif/ui';
 
 const { segmentation: segmentationUtils } = utilities;
 
@@ -204,7 +205,10 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
 
   const onSmartBrushChange = useCallback(
     (valueAsStringOrNumber, toolCategory, type: string) => {
-      const value = Number(valueAsStringOrNumber);
+      let value = valueAsStringOrNumber;
+      if (type === 'sensitivity' || type === 'radius') {
+        value = Number(valueAsStringOrNumber);
+      }
 
       const toolNames = _getToolNamesFromCategory(toolCategory);
 
@@ -229,6 +233,21 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
     },
     [toolGroupService, dispatch]
   );
+
+  const onSmartBrushPropogate = useCallback(toolCategory => {
+    const toolNames = _getToolNamesFromCategory(toolCategory);
+
+    toolNames.forEach(toolName => {
+      toolGroupService.getToolGroupIds()?.forEach(toolGroupId => {
+        const toolGroup = toolGroupService.getToolGroup(toolGroupId);
+
+        const smartBrushInst = toolGroup.getToolInstance(toolName);
+        if (smartBrushInst !== undefined) {
+          toolGroup.getToolInstance(toolName).propogate();
+        }
+      });
+    });
+  }, []);
 
   const handleRangeChange = useCallback(
     newRange => {
@@ -303,7 +322,7 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
         },
         {
           name: 'SmartBrush',
-          icon: 'icon-tool-brush',
+          icon: 'icon-tool-smartbrush',
           disabled: !toolsEnabled,
           active: state.activeTool === TOOL_TYPES.SMART_BRUSH,
           onClick: () => setToolActive(TOOL_TYPES.SMART_BRUSH),
@@ -327,6 +346,20 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
               value: state.SmartBrush.sensitivity,
               step: 0.05,
               onChange: value => onSmartBrushChange(value, 'SmartBrush', 'sensitivity'),
+            },
+            {
+              name: 'Propogate',
+              id: 'smartBrush-propogate',
+              type: 'custom',
+              children: (
+                <LegacyButton
+                  onClick={() => {
+                    onSmartBrushPropogate('SmartBrush');
+                  }}
+                >
+                  Propogate
+                </LegacyButton>
+              ),
             },
           ],
         },

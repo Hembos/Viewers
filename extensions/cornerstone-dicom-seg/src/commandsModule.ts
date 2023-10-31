@@ -1,5 +1,6 @@
 import dcmjs from 'dcmjs';
 import { createReportDialogPrompt } from '@ohif/extension-default';
+import storeSegmentationDialog from './panels/storeSegmentationDialog';
 import { ServicesManager, Types } from '@ohif/core';
 import { cache, metaData } from '@cornerstonejs/core';
 import { segmentation as cornerstoneToolsSegmentation } from '@cornerstonejs/tools';
@@ -307,11 +308,11 @@ const commandsModule = ({
      * otherwise throws an error.
      */
     storeSegmentation: async ({ segmentationId, dataSource }) => {
-      const promptResult = await createReportDialogPrompt(uiDialogService, {
+      const promptResult = await storeSegmentationDialog(uiDialogService, {
         extensionManager,
       });
 
-      if (promptResult.action !== 1 && promptResult.value) {
+      if (promptResult.action !== 1) {
         return;
       }
 
