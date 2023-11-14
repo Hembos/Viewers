@@ -157,7 +157,7 @@ class SegmentationService extends PubSubService {
     );
 
     segmentation.segments[segmentIndex] = {
-      label: config.properties?.label ?? `Segment ${segmentIndex}`,
+      label: config.properties?.label ?? `Nodule ${segmentIndex}`,
       segmentIndex: segmentIndex,
       color: [rgbaColor[0], rgbaColor[1], rgbaColor[2]],
       opacity: rgbaColor[3],
