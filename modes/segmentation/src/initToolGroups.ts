@@ -36,6 +36,33 @@ function createTools(utilityModule) {
         },
       }))
       .concat([
+        { toolName: toolNames.Length },
+        {
+          toolName: toolNames.ArrowAnnotate,
+          configuration: {
+            getTextCallback: (callback, eventDetails) =>
+              commandsManager.runCommand('arrowTextCallback', {
+                callback,
+                eventDetails,
+              }),
+
+            changeTextCallback: (data, eventDetails, callback) =>
+              commandsManager.runCommand('arrowTextCallback', {
+                callback,
+                data,
+                eventDetails,
+              }),
+          },
+        },
+        { toolName: toolNames.Bidirectional },
+        { toolName: toolNames.DragProbe },
+        { toolName: toolNames.EllipticalROI },
+        { toolName: toolNames.CircleROI },
+        { toolName: toolNames.RectangleROI },
+        { toolName: toolNames.Angle },
+        { toolName: toolNames.CobbAngle },
+        { toolName: toolNames.PlanarFreehandROI },
+        { toolName: toolNames.CalibrationLine },
         { toolName: toolNames.CircleScissors },
         { toolName: toolNames.RectangleScissors },
         { toolName: toolNames.SphereScissors },
@@ -44,6 +71,7 @@ function createTools(utilityModule) {
         { toolName: toolNames.SegmentationDisplay },
         { toolName: toolNames.SmartBrush },
       ]),
+    enabled: [{ toolName: toolNames.ImageOverlayViewer }],
     disabled: [{ toolName: toolNames.ReferenceLines }],
   };
 }

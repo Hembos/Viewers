@@ -24,6 +24,8 @@ import { easeInOutBell, reverseEaseInOutBell } from '../../utils/transitions';
 import { Segment, Segmentation, SegmentationConfig } from './SegmentationServiceTypes';
 import { mapROIContoursToRTStructData } from './RTSTRUCT/mapROIContoursToRTStructData';
 
+import { calcDiameter } from '../../tools/DiameterTool';
+
 const { COLOR_LUT } = cstConstants;
 const LABELMAP = csToolsEnums.SegmentationRepresentations.Labelmap;
 const CONTOUR = csToolsEnums.SegmentationRepresentations.Contour;
@@ -1502,7 +1504,7 @@ class SegmentationService extends PubSubService {
         }
       }
 
-      console.log(cache.getCacheSize(), cache.getMaxCacheSize());
+      calcDiameter(segmentIndex);
 
       resolve(numPixels * spacing[0] * spacing[1] * spacing[2]);
     });

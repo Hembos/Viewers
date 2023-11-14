@@ -74,6 +74,163 @@ function _createSetToolActiveCommands(toolName) {
 }
 
 const toolbarButtons = [
+  {
+    id: 'MeasurementTools',
+    type: 'ohif.splitButton',
+    props: {
+      groupId: 'MeasurementTools',
+      isRadio: true, // ?
+      // Switch?
+      primary: _createToolButton(
+        'Length',
+        'tool-length',
+        'Length',
+        [
+          {
+            commandName: 'setToolActive',
+            commandOptions: {
+              toolName: 'Length',
+            },
+            context: 'CORNERSTONE',
+          },
+          {
+            commandName: 'setToolActive',
+            commandOptions: {
+              toolName: 'SRLength',
+              toolGroupId: 'SRToolGroup',
+            },
+            // we can use the setToolActive command for this from Cornerstone commandsModule
+            context: 'CORNERSTONE',
+          },
+        ],
+        'Length'
+      ),
+      secondary: {
+        icon: 'chevron-down',
+        label: '',
+        isActive: true,
+        tooltip: 'More Measure Tools',
+      },
+      items: [
+        _createToolButton(
+          'Length',
+          'tool-length',
+          'Length',
+          [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'Length',
+              },
+              context: 'CORNERSTONE',
+            },
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'SRLength',
+                toolGroupId: 'SRToolGroup',
+              },
+              // we can use the setToolActive command for this from Cornerstone commandsModule
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Length Tool'
+        ),
+        _createToolButton(
+          'Bidirectional',
+          'tool-bidirectional',
+          'Bidirectional',
+          [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'Bidirectional',
+              },
+              context: 'CORNERSTONE',
+            },
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'SRBidirectional',
+                toolGroupId: 'SRToolGroup',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Bidirectional Tool'
+        ),
+        _createToolButton(
+          'ArrowAnnotate',
+          'tool-annotate',
+          'Annotation',
+          [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'ArrowAnnotate',
+              },
+              context: 'CORNERSTONE',
+            },
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'SRArrowAnnotate',
+                toolGroupId: 'SRToolGroup',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Arrow Annotate'
+        ),
+        _createToolButton(
+          'EllipticalROI',
+          'tool-elipse',
+          'Ellipse',
+          [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'EllipticalROI',
+              },
+              context: 'CORNERSTONE',
+            },
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'SREllipticalROI',
+                toolGroupId: 'SRToolGroup',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Ellipse Tool'
+        ),
+        _createToolButton(
+          'CircleROI',
+          'tool-circle',
+          'Circle',
+          [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'CircleROI',
+              },
+              context: 'CORNERSTONE',
+            },
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'SRCircleROI',
+                toolGroupId: 'SRToolGroup',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Circle Tool'
+        ),
+      ],
+    },
+  },
   // Zoom..
   {
     id: 'Zoom',

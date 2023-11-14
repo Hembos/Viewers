@@ -22,6 +22,17 @@ const segmentation = {
   viewport: '@ohif/extension-cornerstone-dicom-seg.viewportModule.dicom-seg',
 };
 
+const tracked = {
+  measurements: '@ohif/extension-measurement-tracking.panelModule.trackedMeasurements',
+  thumbnailList: '@ohif/extension-measurement-tracking.panelModule.seriesList',
+  viewport: '@ohif/extension-measurement-tracking.viewportModule.cornerstone-tracked',
+};
+
+const dicomsr = {
+  sopClassHandler: '@ohif/extension-cornerstone-dicom-sr.sopClassHandlerModule.dicom-sr',
+  viewport: '@ohif/extension-cornerstone-dicom-sr.viewportModule.dicom-sr',
+};
+
 /**
  * Just two dependencies to be able to render a viewport with panels in order
  * to make sure that the mode is working.
@@ -30,6 +41,8 @@ const extensionDependencies = {
   '@ohif/extension-default': '^3.0.0',
   '@ohif/extension-cornerstone': '^3.0.0',
   '@ohif/extension-cornerstone-dicom-seg': '^3.0.0',
+  '@ohif/extension-measurement-tracking': '^3.0.0',
+  '@ohif/extension-cornerstone-dicom-sr': '^3.0.0',
 };
 
 function modeFactory({ modeConfiguration }) {
@@ -89,6 +102,7 @@ function modeFactory({ modeConfiguration }) {
       toolbarService.init(extensionManager);
       toolbarService.addButtons(toolbarButtons);
       toolbarService.createButtonSection('primary', [
+        'MeasurementTools',
         'Zoom',
         'WindowLevel',
         'Pan',
@@ -142,9 +156,17 @@ function modeFactory({ modeConfiguration }) {
           return {
             id: ohif.layout,
             props: {
-              leftPanels: [ohif.leftPanel],
-              rightPanels: [segmentation.panelTool],
+              leftPanels: [ohif.leftPanel, tracked.thumbnailList],
+              rightPanels: [segmentation.panelTool, tracked.measurements],
               viewports: [
+                {
+                  namespace: tracked.viewport,
+                  displaySetsToDisplay: [ohif.sopClassHandler],
+                },
+                {
+                  namespace: dicomsr.viewport,
+                  displaySetsToDisplay: [dicomsr.sopClassHandler],
+                },
                 {
                   namespace: cornerstone.viewport,
                   displaySetsToDisplay: [ohif.sopClassHandler],
@@ -164,7 +186,7 @@ function modeFactory({ modeConfiguration }) {
     /** HangingProtocol used by the mode */
     // hangingProtocol: [''],
     /** SopClassHandlers used by the mode */
-    sopClassHandlers: [ohif.sopClassHandler, segmentation.sopClassHandler],
+    sopClassHandlers: [ohif.sopClassHandler, segmentation.sopClassHandler, dicomsr.sopClassHandler],
     /** hotkeys for mode */
     hotkeys: [...hotkeys.defaults.hotkeyBindings],
   };
