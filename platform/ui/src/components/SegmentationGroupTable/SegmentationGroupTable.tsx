@@ -6,7 +6,7 @@ import SegmentationDropDownRow from './SegmentationDropDownRow';
 import NoSegmentationRow from './NoSegmentationRow';
 import AddSegmentRow from './AddSegmentRow';
 import SegmentationGroupSegment from './SegmentationGroupSegment';
-import { Select, Icon, Button } from '../../components';
+import { Select, Icon, Button, CheckBox } from '../../components';
 
 const SegmentationGroupTable = ({
   segmentations,
@@ -33,6 +33,7 @@ const SegmentationGroupTable = ({
   onSegmentDelete,
   onSegmentEdit,
   onSegmentTypeEdit,
+  onSegmentLocalizationEdit,
   onSegmentCapacityCalc,
   onToggleSegmentationVisibility,
   onToggleSegmentVisibility,
@@ -84,6 +85,10 @@ const SegmentationGroupTable = ({
     { label: 'Airway nodule', value: 'Airway nodule' },
     { label: 'Atypical pulmonary cyst', value: 'Atypical pulmonary cyst' },
   ];
+
+  const localizations = Array.from(Array(10).keys(), x => {
+    return { label: (x + 1).toString(), value: (x + 1).toString() };
+  });
 
   return (
     <div className="flex min-h-0 flex-col bg-black text-[13px] font-[300]">
@@ -168,6 +173,46 @@ const SegmentationGroupTable = ({
                 )}
                 className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
               />
+            </div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <Select
+                id="segment-localization-select"
+                isClearable={false}
+                onChange={option => {
+                  onSegmentLocalizationEdit(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex,
+                    option.value
+                  );
+                }}
+                components={{
+                  DropdownIndicator: () => (
+                    <Icon
+                      name={'chevron-down-new'}
+                      className="mr-2"
+                    />
+                  ),
+                }}
+                isSearchable={false}
+                options={localizations}
+                value={localizations?.find(
+                  o =>
+                    o.value ===
+                    activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.localization
+                )}
+                className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
+              />
+            </div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <CheckBox
+                checked={false}
+                label={'qwert'}
+              >
+                Auto diameter
+              </CheckBox>
+            </div>
+
+            <div className="group mx-0.5 mt-[8px] flex items-center">
               <Button
                 onClick={() => {
                   onSegmentCapacityCalc(
@@ -262,6 +307,7 @@ SegmentationGroupTable.propTypes = {
   onSegmentDelete: PropTypes.func.isRequired,
   onSegmentEdit: PropTypes.func.isRequired,
   onSegmentTypeEdit: PropTypes.func.isRequired,
+  onSegmentLocalizationEdit: PropTypes.func.isRequired,
   onSegmentCapacityCalc: PropTypes.func.isRequired,
   onToggleSegmentationVisibility: PropTypes.func.isRequired,
   onToggleSegmentVisibility: PropTypes.func.isRequired,
@@ -296,6 +342,7 @@ SegmentationGroupTable.defaultProps = {
   onSegmentDelete: () => {},
   onSegmentEdit: () => {},
   onSegmentTypeEdit: () => {},
+  onSegmentLocalizationEdit: () => {},
   onSegmentCapacityCalc: () => {},
   onToggleSegmentationVisibility: () => {},
   onToggleSegmentVisibility: () => {},

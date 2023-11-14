@@ -102,6 +102,10 @@ export default function PanelSegmentation({
     segmentationService.setSegmentType(segmentationId, segmentIndex, newType);
   };
 
+  const onSegmentLocalizationEdit = (segmentationId, segmentIndex, newLocalization) => {
+    segmentationService.setSegmentLocalization(segmentationId, segmentIndex, newLocalization);
+  };
+
   const onSegmentCapacityCalc = (segmentationId, segmentIndex) => {
     // segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value =>
     //   uiNotificationService.show({
@@ -270,6 +274,7 @@ export default function PanelSegmentation({
           onSegmentClick={onSegmentClick}
           onSegmentEdit={onSegmentEdit}
           onSegmentTypeEdit={onSegmentTypeEdit}
+          onSegmentLocalizationEdit={onSegmentLocalizationEdit}
           onSegmentCapacityCalc={onSegmentCapacityCalc}
           onSegmentAdd={onSegmentAdd}
           onSegmentColorClick={onSegmentColorClick}

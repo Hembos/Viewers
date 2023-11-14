@@ -22,6 +22,7 @@ type Segment = {
   isLocked: boolean;
 
   typeNodle: string;
+  localization: string;
 };
 
 type Segmentation = {

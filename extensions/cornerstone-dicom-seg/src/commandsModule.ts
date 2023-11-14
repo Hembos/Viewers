@@ -240,13 +240,22 @@ const commandsModule = ({
       labelmapObj.segmentsOnLabelmap.forEach(segmentIndex => {
         // segmentation service already has a color for each segment
         const segment = segmentationInOHIF?.segments[segmentIndex];
-        const { label, color, typeNodle } = segment;
+        const { label, color, typeNodle, localization } = segment;
 
         const RecommendedDisplayCIELabValue = dcmjs.data.Colors.rgb2DICOMLAB(
           color.slice(0, 3).map(value => value / 255)
         ).map(value => Math.round(value));
 
-        const segmentLabel = '{"name": "' + label + '",' + '"type": "' + typeNodle + '"}';
+        const segmentLabel =
+          '{"name": "' +
+          label +
+          '",' +
+          '"type": "' +
+          typeNodle +
+          '",' +
+          '"localization": "' +
+          localization +
+          '"}';
 
         const segmentMetadata = {
           SegmentNumber: segmentIndex.toString(),

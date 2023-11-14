@@ -601,6 +601,7 @@ class SegmentationService extends PubSubService {
         isVisible: true,
         isLocked: false,
         typeNodle: JSON.parse(SegmentLabel).type,
+        localization: JSON.parse(SegmentLabel).localization,
       };
     });
 
@@ -1472,6 +1473,42 @@ class SegmentationService extends PubSubService {
     }
 
     segmentInfo.typeNodle = type;
+
+    if (suppressEvents === false) {
+      // this._setSegmentationModified(segmentationId);
+      this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
+        segmentation,
+      });
+    }
+  }
+
+  public setSegmentLocalization(
+    segmentationId: string,
+    segmentIndex: number,
+    localization: string
+  ) {
+    this._setSegmentLocalization(segmentationId, segmentIndex, localization);
+  }
+
+  private _setSegmentLocalization(
+    segmentationId: string,
+    segmentIndex: number,
+    localization: string,
+    suppressEvents = false
+  ) {
+    const segmentation = this.getSegmentation(segmentationId);
+
+    if (segmentation === undefined) {
+      throw new Error(`no segmentation for segmentationId: ${segmentationId}`);
+    }
+
+    const segmentInfo = segmentation.segments[segmentIndex];
+
+    if (segmentInfo === undefined) {
+      throw new Error(`Segment ${segmentIndex} not yet added to segmentation: ${segmentationId}`);
+    }
+
+    segmentInfo.localization = localization;
 
     if (suppressEvents === false) {
       // this._setSegmentationModified(segmentationId);
