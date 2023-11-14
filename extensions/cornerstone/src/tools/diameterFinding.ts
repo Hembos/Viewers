@@ -81,16 +81,6 @@ function getLineEquation(p1, p2) {
 }
 
 function getIntersectionPoint(eq1, eq2) {
-  if (!eq1) {
-    console.log('eq1');
-    console.log(eq2);
-  }
-
-  if (!eq2) {
-    console.log('eq2');
-    consle.log(eq1);
-  }
-
   const t =
     (eq2.x.b * (eq1.y.a - eq2.y.a) + eq2.y.b * (eq2.x.a - eq1.x.a)) /
     (eq1.x.b * eq2.y.b - eq1.y.b * eq2.x.b);
@@ -98,7 +88,7 @@ function getIntersectionPoint(eq1, eq2) {
   return { x: eq1.x.a + eq1.x.b * t, y: eq1.y.a + eq1.y.b * t };
 }
 
-function getSegmentLength(p1, p2) {
+export function getSegmentLength(p1, p2) {
   return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
 }
 

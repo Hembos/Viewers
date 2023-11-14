@@ -106,6 +106,10 @@ export default function PanelSegmentation({
     segmentationService.setSegmentLocalization(segmentationId, segmentIndex, newLocalization);
   };
 
+  const onAutoDiameter = state => {
+    segmentationService.setAutoDiameter(state);
+  };
+
   const onSegmentCapacityCalc = (segmentationId, segmentIndex) => {
     // segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value =>
     //   uiNotificationService.show({
@@ -274,6 +278,7 @@ export default function PanelSegmentation({
           onSegmentClick={onSegmentClick}
           onSegmentEdit={onSegmentEdit}
           onSegmentTypeEdit={onSegmentTypeEdit}
+          onAutoDiameter={onAutoDiameter}
           onSegmentLocalizationEdit={onSegmentLocalizationEdit}
           onSegmentCapacityCalc={onSegmentCapacityCalc}
           onSegmentAdd={onSegmentAdd}

@@ -4,8 +4,9 @@ import { cache } from '@cornerstonejs/core';
 import { LabelmapSegmentationData } from '@cornerstonejs/tools/dist/esm/types/LabelmapTypes';
 import { getVerticesPolygon } from './getVertivesPolygon';
 import { buildConvexHull } from './buildConvexHull';
-import { findDiameter, findOrthogonalDiameter } from './diameterFinding';
+import { findDiameter, findOrthogonalDiameter, getSegmentLength } from './diameterFinding';
 import { triggerSegmentationDataModified } from '@cornerstonejs/tools/dist/esm/stateManagement/segmentation/triggerSegmentationEvents';
+import { scroll } from '@cornerstonejs/tools/dist/esm/utilities';
 
 const memoryChanVese = new WebAssembly.Memory({
   initial: 256,
@@ -40,7 +41,6 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
     diameter.first.y + bbox[1],
     imageIndex,
   ]);
-
   if (diameter.first.x > diameter.second.x) {
     world1[0] += segmentation.spacing[0] / 2;
   } else {
@@ -53,7 +53,6 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
   }
   const canvasPoint1 = viewport.worldToCanvas(world1);
   const [pageX1, pageY1] = canvasPointsToPagePoints(viewport.canvas, canvasPoint1);
-
   const world2 = imageData.indexToWorld([
     diameter.second.x + bbox[0],
     diameter.second.y + bbox[1],
@@ -71,7 +70,6 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
   }
   const canvasPoint2 = viewport.worldToCanvas(world2);
   const [pageX2, pageY2] = canvasPointsToPagePoints(viewport.canvas, canvasPoint2);
-
   window.services.toolbarService.recordInteraction({
     interactionType: 'tool',
     commands: [
@@ -83,24 +81,20 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
       },
     ],
   });
-
   const firstPointEvt = new MouseEvent('mousedown', {
     buttons: 1,
     clientX: pageX1,
     clientY: pageY1,
   });
   viewport.element.dispatchEvent(firstPointEvt);
-
   const moveEvt = new MouseEvent('mousemove', {
     buttons: 1,
     clientX: pageX2,
     clientY: pageY2,
   });
   document.dispatchEvent(moveEvt);
-
   const secondPointEvt = new MouseEvent('mouseup');
   document.dispatchEvent(secondPointEvt);
-
   window.services.toolbarService.recordInteraction({
     interactionType: 'tool',
     commands: [
@@ -114,7 +108,45 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
   });
 }
 
-export function calcDiameter(segmentIndex) {
+function calcDiameters(imageIndex, frameLength, labelMap, dimensions, segmentIndex) {
+  const lableMapChanVese = new Int32Array(memoryChanVese.buffer, 0, frameLength);
+  const bbox = new Int32Array(memoryChanVese.buffer, frameLength * 4, 4);
+  for (let i = 0; i < dimensions[0]; i++) {
+    for (let j = 0; j < dimensions[1]; j++) {
+      const pixelIndex = frameLength * imageIndex + i * dimensions[0] + j;
+      lableMapChanVese[i * dimensions[0] + j] = labelMap[pixelIndex];
+    }
+  }
+  getBboxFromLabelMap(frameLength * 4, segmentIndex, dimensions[1], dimensions[0], 0);
+  const width = bbox[2] - bbox[0] + 1;
+  const height = bbox[3] - bbox[1] + 1;
+
+  if (width < 2 || height < 2) {
+    return undefined;
+  }
+
+  const mask = new Int32Array(width * height);
+  for (let i = 0; i < height; i++) {
+    for (let j = 0; j < width; j++) {
+      if (lableMapChanVese[(i + bbox[1]) * dimensions[0] + (j + bbox[0])] === segmentIndex) {
+        mask[i * width + j] = 1;
+      } else {
+        mask[i * width + j] = 0;
+      }
+    }
+  }
+
+  const vertices = getVerticesPolygon(mask, width, height);
+
+  const convexHull = buildConvexHull(vertices.length, vertices);
+
+  const diameter = findDiameter(convexHull.length, convexHull);
+  const orthogonalDiameter = findOrthogonalDiameter(convexHull.length, convexHull, diameter, 0.1);
+
+  return { diameter: diameter, orthogonalDiameter: orthogonalDiameter, bbox: bbox.map(x => x) };
+}
+
+export function calcAndDrawDiameter(segmentIndex) {
   const toolGroupId = 'default';
 
   const activeSegmentationRepresentation =
@@ -137,48 +169,33 @@ export function calcDiameter(segmentIndex) {
 
   const viewport = window.services.cornerstoneViewportService.getCornerstoneViewport(viewportId);
 
-  const imageIndex = viewport.getCurrentImageIdIndex();
-
   const frameLength = dimensions[0] * dimensions[1];
 
-  const lableMapChanVese = new Int32Array(memoryChanVese.buffer, 0, frameLength);
-  const bbox = new Int32Array(memoryChanVese.buffer, frameLength * 4, 4);
-  for (let i = 0; i < dimensions[0]; i++) {
-    for (let j = 0; j < dimensions[1]; j++) {
-      const pixelIndex = frameLength * imageIndex + i * dimensions[0] + j;
-      lableMapChanVese[i * dimensions[0] + j] = labelMap[pixelIndex];
-    }
-  }
-  getBboxFromLabelMap(frameLength * 4, segmentIndex, dimensions[1], dimensions[0], 0);
-  const width = bbox[2] - bbox[0] + 1;
-  const height = bbox[3] - bbox[1] + 1;
-
-  const mask = new Int32Array(width * height);
-  for (let i = 0; i < height; i++) {
-    for (let j = 0; j < width; j++) {
-      if (lableMapChanVese[(i + bbox[1]) * dimensions[0] + (j + bbox[0])] === segmentIndex) {
-        mask[i * width + j] = 1;
-      } else {
-        mask[i * width + j] = 0;
+  let diameters = undefined;
+  let imageIndex;
+  if (!window.services.segmentationService.autoDiameter) {
+    imageIndex = viewport.getCurrentImageIdIndex();
+    diameters = calcDiameters(imageIndex, frameLength, labelMap, dimensions, segmentIndex);
+  } else {
+    let maxLength = 0;
+    for (let i = 0; i < dimensions[2]; i++) {
+      const tmpDiameters = calcDiameters(i, frameLength, labelMap, dimensions, segmentIndex);
+      if (tmpDiameters === undefined) {
+        continue;
+      }
+      const tmpLength = getSegmentLength(tmpDiameters.diameter.first, tmpDiameters.diameter.second);
+      if (tmpLength > maxLength) {
+        diameters = tmpDiameters;
+        maxLength = tmpLength;
+        imageIndex = i;
+        console.log(diameters);
       }
     }
   }
 
-  console.log(width, height);
-
-  const vertices = getVerticesPolygon(mask, width, height);
-
-  const convexHull = buildConvexHull(vertices.length, vertices);
-
-  const diameter = findDiameter(convexHull.length, convexHull);
-
-  console.log(vertices);
-  console.log(convexHull);
-  console.log(diameter);
-  console.log(segmentation);
-
-  const orthogonalDiameter = findOrthogonalDiameter(convexHull.length, convexHull, diameter, 0.1);
-  console.log(orthogonalDiameter);
+  if (diameters === undefined) {
+    return;
+  }
 
   const actors = viewport.getActors();
 
@@ -186,6 +203,20 @@ export function calcDiameter(segmentIndex) {
   const imageVolume = cache.getVolume(firstVolumeActorUID);
   const imageData = imageVolume.imageData;
 
-  drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewport);
-  drawDiameter(orthogonalDiameter, imageData, bbox, imageIndex, segmentation, viewport);
+  console.log(
+    viewport.getCurrentImageIdIndex() - imageIndex,
+    viewport.getCurrentImageIdIndex(),
+    imageIndex,
+    diameters
+  );
+  scroll(viewport, { delta: viewport.getCurrentImageIdIndex() - imageIndex });
+  drawDiameter(diameters.diameter, imageData, diameters.bbox, imageIndex, segmentation, viewport);
+  drawDiameter(
+    diameters.orthogonalDiameter,
+    imageData,
+    diameters.bbox,
+    imageIndex,
+    segmentation,
+    viewport
+  );
 }

@@ -33,6 +33,7 @@ const SegmentationGroupTable = ({
   onSegmentDelete,
   onSegmentEdit,
   onSegmentTypeEdit,
+  onAutoDiameter,
   onSegmentLocalizationEdit,
   onSegmentCapacityCalc,
   onToggleSegmentationVisibility,
@@ -206,10 +207,11 @@ const SegmentationGroupTable = ({
             <div className="group mx-0.5 mt-[8px] flex items-center">
               <CheckBox
                 checked={false}
-                label={'qwert'}
-              >
-                Auto diameter
-              </CheckBox>
+                label={'Auto diameter'}
+                onChange={option => {
+                  onAutoDiameter(option);
+                }}
+              ></CheckBox>
             </div>
 
             <div className="group mx-0.5 mt-[8px] flex items-center">
@@ -307,6 +309,7 @@ SegmentationGroupTable.propTypes = {
   onSegmentDelete: PropTypes.func.isRequired,
   onSegmentEdit: PropTypes.func.isRequired,
   onSegmentTypeEdit: PropTypes.func.isRequired,
+  onAutoDiameter: PropTypes.func.isRequired,
   onSegmentLocalizationEdit: PropTypes.func.isRequired,
   onSegmentCapacityCalc: PropTypes.func.isRequired,
   onToggleSegmentationVisibility: PropTypes.func.isRequired,
@@ -342,6 +345,7 @@ SegmentationGroupTable.defaultProps = {
   onSegmentDelete: () => {},
   onSegmentEdit: () => {},
   onSegmentTypeEdit: () => {},
+  onAutoDiameter: () => {},
   onSegmentLocalizationEdit: () => {},
   onSegmentCapacityCalc: () => {},
   onToggleSegmentationVisibility: () => {},
