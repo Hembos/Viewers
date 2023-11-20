@@ -5,7 +5,6 @@ import { LabelmapSegmentationData } from '@cornerstonejs/tools/dist/esm/types/La
 import { getVerticesPolygon } from './getVertivesPolygon';
 import { buildConvexHull } from './buildConvexHull';
 import { findDiameter, findOrthogonalDiameter, getSegmentLength } from './diameterFinding';
-import { triggerSegmentationDataModified } from '@cornerstonejs/tools/dist/esm/stateManagement/segmentation/triggerSegmentationEvents';
 import { scroll } from '@cornerstonejs/tools/dist/esm/utilities';
 
 const memoryChanVese = new WebAssembly.Memory({
