@@ -23,6 +23,7 @@ type Segment = {
 
   typeNodle: string;
   localization: string;
+  isCustomLocalization: boolean;
 };
 
 type Segmentation = {

@@ -1,17 +1,3 @@
-function findLeftRightPoint(numVertices, convexHull) {
-  const res = { leftInd: 0, rightInd: numVertices - 1 };
-
-  for (let i = 0; i < numVertices; i++) {
-    if (convexHull[i].x < convexHull[res.leftInd].x) {
-      res.leftInd = i;
-    } else if (convexHull[i].x > convexHull[res.rightInd].x) {
-      res.rightInd = i;
-    }
-  }
-
-  return res;
-}
-
 function measureDiameter(d) {
   return (
     (d.second.x - d.first.x) * (d.second.x - d.first.x) +
@@ -104,7 +90,6 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
   const upDiameterInd = findPointIndex(diameter.second, convexHull, numVertices);
 
   const diameterEquation = getLineEquation(diameter.second, diameter.first);
-  console.log(diameterEquation);
 
   const leftSegmentEquations = [];
   const rightSegmentEquations = [];
@@ -176,7 +161,6 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
 
     leftPoints.push(leftPoint);
   }
-  console.log(3);
 
   diameterSplit.reverse();
   let curRightInd = 0;
@@ -195,7 +179,6 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
 
     rightPoints.push(rightPoint);
   }
-  console.log(4);
 
   let maxLength = 0;
   let maxPointLeft = 0;

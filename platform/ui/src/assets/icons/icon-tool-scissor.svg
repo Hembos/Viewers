@@ -1,17 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="24.2500949px" height="20.25px" viewBox="0 0 24.2500949 20.25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>icon-tool-scissor</title>
-    <g id="Artboards" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Segmentation---assets" transform="translate(-126.375, -107.375)">
-            <g id="icon-tool-scissor" transform="translate(126, 105)">
-                <rect id="Rectangle" x="0" y="0" width="25" height="25"></rect>
-                <g id="scissors-2" transform="translate(1, 3)" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25">
-                    <circle id="Oval" cx="3.5" cy="3.5" r="3.5"></circle>
-                    <path d="M10.648,8.232 L23,15.587 C22.3744808,16.5550109 21.1109418,16.8812258 20.095,16.337 L4.154,6.939" id="Path"></path>
-                    <circle id="Oval" cx="3.5" cy="15.5" r="3.5"></circle>
-                    <path d="M12.779,9.501 L23,3.414 C22.3747822,2.44557124 21.1108803,2.11926264 20.095,2.664 L4.154,12.061" id="Path"></path>
-                </g>
-            </g>
-        </g>
-    </g>
+<svg width="23.999999999999996" height="24.74924" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>icon-tool-brush</title>
+
+ <g>
+  <title>Layer 1</title>
+  <text xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="24" id="svg_3" y="18.27748" x="3.81913" stroke-width="0" stroke="#000" fill="#000000"/>
+  <rect fill-opacity="0" id="svg_5" height="11.11111" width="10.69444" y="2.72184" x="2.27778" stroke="#348cfd" fill="#33666C"/>
+  <ellipse fill-opacity="0" stroke="#348cfd" ry="6.875" rx="6.73611" id="svg_6" cy="14.18017" cx="15.68056" fill="#bcbcbc"/>
+ </g>
 </svg>

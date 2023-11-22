@@ -202,12 +202,6 @@ export function calcAndDrawDiameter(segmentIndex) {
   const imageVolume = cache.getVolume(firstVolumeActorUID);
   const imageData = imageVolume.imageData;
 
-  console.log(
-    viewport.getCurrentImageIdIndex() - imageIndex,
-    viewport.getCurrentImageIdIndex(),
-    imageIndex,
-    diameters
-  );
   scroll(viewport, { delta: viewport.getCurrentImageIdIndex() - imageIndex });
   drawDiameter(diameters.diameter, imageData, diameters.bbox, imageIndex, segmentation, viewport);
   drawDiameter(

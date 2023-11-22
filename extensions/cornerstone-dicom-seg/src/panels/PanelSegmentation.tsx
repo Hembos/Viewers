@@ -111,14 +111,6 @@ export default function PanelSegmentation({
   };
 
   const onSegmentCapacityCalc = (segmentationId, segmentIndex) => {
-    // segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value =>
-    //   uiNotificationService.show({
-    //     title: 'roi volume (mm³)',
-    //     message: value.toFixed(3),
-    //     type: 'info',
-    //     duration: 3000,
-    //   })
-    // );
     segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value => {
       setROIVolume('roi volume (mm³): ' + value.toFixed(2));
 
