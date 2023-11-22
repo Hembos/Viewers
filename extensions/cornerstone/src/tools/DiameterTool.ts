@@ -7,11 +7,13 @@ import { buildConvexHull } from './buildConvexHull';
 import { findDiameter, findOrthogonalDiameter, getSegmentLength } from './diameterFinding';
 import { scroll } from '@cornerstonejs/tools/dist/esm/utilities';
 
+// Initialize memory for getBboxFromLabelMap wasm function
 const memoryChanVese = new WebAssembly.Memory({
   initial: 256,
   maximum: 256,
 });
 
+// Instantiate wasm code
 async function fetchAndInstantiate(memory: WebAssembly.Memory, wasmFile: string) {
   const response = await fetch(wasmFile);
   const buffer = await response.arrayBuffer();
@@ -29,12 +31,15 @@ chanVeseExports.then(value => {
   getBboxFromLabelMap = value.getBboxFromLabelMap;
 });
 
+// Convert canvas point to page point
 function canvasPointsToPagePoints(DomCanvasElement, canvasPoint) {
   const rect = DomCanvasElement.getBoundingClientRect();
   return [canvasPoint[0] + rect.left + window.scrollX, canvasPoint[1] + rect.top + window.scrollY];
 }
 
+// Draw diameter on current viewport
 function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewport) {
+  // Calculate points to draw for diameter
   const world1 = imageData.indexToWorld([
     diameter.first.x + bbox[0],
     diameter.first.y + bbox[1],
@@ -52,6 +57,7 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
   }
   const canvasPoint1 = viewport.worldToCanvas(world1);
   const [pageX1, pageY1] = canvasPointsToPagePoints(viewport.canvas, canvasPoint1);
+
   const world2 = imageData.indexToWorld([
     diameter.second.x + bbox[0],
     diameter.second.y + bbox[1],
@@ -69,6 +75,8 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
   }
   const canvasPoint2 = viewport.worldToCanvas(world2);
   const [pageX2, pageY2] = canvasPointsToPagePoints(viewport.canvas, canvasPoint2);
+
+  // Set length tool active
   window.services.toolbarService.recordInteraction({
     interactionType: 'tool',
     commands: [
@@ -80,6 +88,7 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
       },
     ],
   });
+  // Simulating clicking and moving the mouse across the screen
   const firstPointEvt = new MouseEvent('mousedown', {
     buttons: 1,
     clientX: pageX1,
@@ -107,6 +116,7 @@ function drawDiameter(diameter, imageData, bbox, imageIndex, segmentation, viewp
   });
 }
 
+// Calculate max diameter and perpendicular max diameter
 function calcDiameters(imageIndex, frameLength, labelMap, dimensions, segmentIndex) {
   const lableMapChanVese = new Int32Array(memoryChanVese.buffer, 0, frameLength);
   const bbox = new Int32Array(memoryChanVese.buffer, frameLength * 4, 4);

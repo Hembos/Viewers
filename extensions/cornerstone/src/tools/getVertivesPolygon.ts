@@ -1,3 +1,4 @@
+// Finding the bottom point. If there are several of these, then the left one
 function findBottomPoint(mask, width, height) {
   const bottomPoint = { x: 0, y: 0 };
 
@@ -15,10 +16,12 @@ function findBottomPoint(mask, width, height) {
   return bottomPoint;
 }
 
+// Checking that a point lies inside the bounding box
 function checkPoint(point, width, height) {
   return point.x < 0 || point.x > width || point.y < 0 || point.y > height;
 }
 
+// Checking that a vertex is not a degenerate vertex
 function checkVertex(mask, vertex, width, height) {
   let isDegenerate = false;
 
@@ -50,6 +53,7 @@ function checkVertex(mask, vertex, width, height) {
   return isDegenerate;
 }
 
+// Calculate polar angle
 function calcPolarAngle(vertex, bottomPoint) {
   if (vertex.x === bottomPoint.x && vertex.y === bottomPoint.y) {
     return 0;
@@ -62,6 +66,7 @@ function calcPolarAngle(vertex, bottomPoint) {
   return polar;
 }
 
+// Get non degenrate vertices from mask
 export function getVerticesPolygon(mask, width, height) {
   const bottomPoint = findBottomPoint(mask, width, height);
 

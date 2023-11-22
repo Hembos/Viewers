@@ -1,3 +1,4 @@
+// Calculates the square of the length of a diameter
 function measureDiameter(d) {
   return (
     (d.second.x - d.first.x) * (d.second.x - d.first.x) +
@@ -5,13 +6,16 @@ function measureDiameter(d) {
   );
 }
 
+// Calculating the signed area modulus of a triangle
 function area(a, b, c) {
   return Math.abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
 }
 
+// Find max diameter for convex hull
 export function findDiameter(numVertices, convexHull) {
   let k = 1;
 
+  // Finding the opposite point for the first point
   while (
     area(convexHull[numVertices - 1], convexHull[0], convexHull[(k + 1) % numVertices]) >
     area(convexHull[numVertices - 1], convexHull[0], convexHull[k])
@@ -23,6 +27,7 @@ export function findDiameter(numVertices, convexHull) {
   let resDiam = { first: convexHull[0], second: convexHull[k] };
 
   for (let i = 0, j = k; i <= k; i++) {
+    // Finding the opposite point for the current point and check that current diameter is max
     while (
       area(convexHull[i], convexHull[(i + 1) % numVertices], convexHull[(j + 1) % numVertices]) >
       area(convexHull[i], convexHull[(i + 1) % numVertices], convexHull[j])
@@ -50,6 +55,7 @@ export function findDiameter(numVertices, convexHull) {
   return resDiam;
 }
 
+// Find point in list and return it's index
 function findPointIndex(point, vertices, numVertices) {
   let ind = undefined;
   for (let i = 0; i < numVertices; i++) {
@@ -62,10 +68,12 @@ function findPointIndex(point, vertices, numVertices) {
   return ind;
 }
 
+// Calculate line equation in parameteristic form
 function getLineEquation(p1, p2) {
   return { x: { a: p1.x, b: p2.x - p1.x }, y: { a: p1.y, b: p2.y - p1.y } };
 }
 
+// Calculate intersextion point for two parameteristic equations
 function getIntersectionPoint(eq1, eq2) {
   const t =
     (eq2.x.b * (eq1.y.a - eq2.y.a) + eq2.y.b * (eq2.x.a - eq1.x.a)) /
@@ -74,10 +82,12 @@ function getIntersectionPoint(eq1, eq2) {
   return { x: eq1.x.a + eq1.x.b * t, y: eq1.y.a + eq1.y.b * t };
 }
 
+// Calculate square segment length
 export function getSegmentLength(p1, p2) {
   return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
 }
 
+// Calculate perpendicular line equation in parametristic form
 function getPerpendicularLine(eq, point) {
   return {
     x: { a: point.x, b: -eq.y.b },
@@ -85,6 +95,7 @@ function getPerpendicularLine(eq, point) {
   };
 }
 
+// Find perpendicular diameter for a given diameter
 export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta = 0.5) {
   const bottomDiameterInd = findPointIndex(diameter.first, convexHull, numVertices);
   const upDiameterInd = findPointIndex(diameter.second, convexHull, numVertices);
@@ -97,6 +108,7 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
   const diameterBreakdownLeft = [];
   const diameterBreakdownRight = [];
 
+  // Dividing a given diameter into segments according to the intersection of the left vertices with the diameter
   let ind = upDiameterInd;
   while (ind !== bottomDiameterInd) {
     const nextInd = (ind + 1) % numVertices;
@@ -112,6 +124,7 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
     ind = nextInd;
   }
 
+  // Dividing a given diameter into segments according to the intersection of the right vertices with the diameter
   ind = bottomDiameterInd;
   while (ind !== upDiameterInd) {
     const nextInd = (ind + 1) % numVertices;
@@ -129,6 +142,7 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
 
   const diameterLength = getSegmentLength(diameter.first, diameter.second);
 
+  // Dividing the diameter into segments of equal length
   let curSegmentBreakdownLength = 0;
   let n = 0;
   const diameterSplit = [];
@@ -145,6 +159,7 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
     curSegmentBreakdownLength = n * delta;
   }
 
+  // Construction of straight lines perpendicular to the diameter at the splitting points for vertices that are on the left side of the diameter
   let curLeftInd = 0;
   const leftPoints = [];
   for (const diameterPoint of diameterSplit) {
@@ -162,6 +177,7 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
     leftPoints.push(leftPoint);
   }
 
+  // Construction of straight lines perpendicular to the diameter at the splitting points for vertices that are on the right side of the diameter
   diameterSplit.reverse();
   let curRightInd = 0;
   const rightPoints = [];
@@ -180,6 +196,7 @@ export function findOrthogonalDiameter(numVertices, convexHull, diameter, delta 
     rightPoints.push(rightPoint);
   }
 
+  // Finding the maximum perpendicular diameter
   let maxLength = 0;
   let maxPointLeft = 0;
   let maxPointRight = 0;

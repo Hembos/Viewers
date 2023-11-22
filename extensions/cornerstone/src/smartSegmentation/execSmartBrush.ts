@@ -16,16 +16,19 @@ type OperationData = {
   constraintFn: () => boolean;
 };
 
+// Initialize memory for smartBrush wasm
 const memorySmartBrush = new WebAssembly.Memory({
   initial: 256,
   maximum: 256,
 });
 
+// Initialize memory for chanVese wasm
 const memoryChanVese = new WebAssembly.Memory({
   initial: 256,
   maximum: 256,
 });
 
+// Instantiate wasm code
 async function fetchAndInstantiate(memory: WebAssembly.Memory, wasmFile: string) {
   const response = await fetch(wasmFile);
   const buffer = await response.arrayBuffer();
@@ -51,6 +54,7 @@ chanVeseExports.then(value => {
   getBboxFromLabelMap = value.getBboxFromLabelMap;
 });
 
+// Launching the smart brush tool
 export function execSmartBrush(
   enabledElement: Types.IEnabledElement,
   operationData: OperationData
@@ -72,6 +76,7 @@ export function execSmartBrush(
   const { viewport } = enabledElement;
   const { voiRange } = viewport.getProperties();
 
+  // Get pixel indices from world coordinate
   const clickPoint = transformWorldToIndex(imageData, centerCanvas as Types.Point3) as Types.Point3;
 
   const size = radius * 2 + 1;
@@ -82,7 +87,7 @@ export function execSmartBrush(
   }
 
   const imageScalarData = imageVolume.getScalarData();
-
+  // Obtaining pixel intensities with their correction
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
       const pixelIndex =
@@ -105,6 +110,7 @@ export function execSmartBrush(
     }
   }
 
+  // Find mask for click point
   runSmartBrush(
     radius,
     sensitivity,
@@ -116,6 +122,7 @@ export function execSmartBrush(
     area * 5 * 4
   );
 
+  // Labelmap creation for finded mask
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
       const pixelIndex =
@@ -141,8 +148,6 @@ export function execSmartBrush(
   getBboxFromLabelMap(frameLength * 4, segmentIndex, dimensions[1], dimensions[0], 0);
   const width = bbox[2] - bbox[0];
   const height = bbox[3] - bbox[1];
-
-  console.log(bbox);
 
   const intensities = new Float32Array(memoryChanVese.buffer, frameLength * 4 + 16, width * height);
   for (let i = 0; i < height; i++) {
@@ -172,9 +177,8 @@ export function execSmartBrush(
       }
     }
   }
-  console.log(width, height);
-  console.log(mask);
 
+  // Mask correction with chanVese algorithm
   const buffer = new Float32Array(
     memoryChanVese.buffer,
     (frameLength + 4 + 2 * width * height) * 4
@@ -204,6 +208,7 @@ export function execSmartBrush(
     }
   }
 
+  // Update mask rendering
   const modifiedSlicesToUse = new Set() as Set<number>;
 
   modifiedSlicesToUse.add(clickPoint[2]);
@@ -215,6 +220,7 @@ export function execSmartBrush(
   triggerSegmentationDataModified(segmentationId, arrayOfSlices);
 }
 
+// Propogate mask to other slices
 export function propogate_segment(options) {
   const { imageIndex, segmentIndex, segmentation, segmentationId, viewport, radius, imageVolume } =
     options;
@@ -395,25 +401,6 @@ export function propogate_segment(options) {
 
     modifiedSlicesToUse.add(curImage);
   }
-
-  // for (let i = imageIndex - radius; i < imageIndex + radius; i++) {
-  //   if (i < 0 || i >= dimensions[2]) {
-  //     continue;
-  //   }
-
-  //   for (let h = 0; h < height; h++) {
-  //     for (let w = 0; w < width; w++) {
-  //       const pixelIndex = frameLength * i + (bbox[1] + h) * dimensions[0] + (bbox[0] + w);
-  //       const tmpIndex = frameLength * imageIndex + (bbox[1] + h) * dimensions[0] + (bbox[0] + w);
-
-  //       if (scalarData[tmpIndex] === segmentIndex) {
-  //         scalarData[pixelIndex] = segmentIndex;
-  //       }
-  //     }
-  //   }
-
-  //   modifiedSlicesToUse.add(i);
-  // }
 
   const arrayOfSlices: number[] = Array.from(modifiedSlicesToUse);
   triggerSegmentationDataModified(segmentationId, arrayOfSlices);
