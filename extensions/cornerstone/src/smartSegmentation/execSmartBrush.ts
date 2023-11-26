@@ -252,8 +252,6 @@ export function propogate_segment(options) {
     const width = bbox[2] - bbox[0] + 1;
     const height = bbox[3] - bbox[1] + 1;
 
-    console.log(curImage, bbox);
-
     const intensities = new Float32Array(
       memoryChanVese.buffer,
       frameLength * 4 + 16,
@@ -305,6 +303,7 @@ export function propogate_segment(options) {
       (frameLength + 4 + 2 * width * height) * 4
     );
 
+    let s = 0;
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         const pixelIndex =
@@ -312,8 +311,13 @@ export function propogate_segment(options) {
 
         if (mask[i * width + j] === 1) {
           scalarData[pixelIndex] = segmentIndex;
+          s++;
         }
       }
+    }
+
+    if (s < 20) {
+      break;
     }
 
     modifiedSlicesToUse.add(curImage);
@@ -388,6 +392,7 @@ export function propogate_segment(options) {
       (frameLength + 4 + 2 * width * height) * 4
     );
 
+    let s = 0;
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         const pixelIndex =
@@ -395,8 +400,13 @@ export function propogate_segment(options) {
 
         if (mask[i * width + j] === 1) {
           scalarData[pixelIndex] = segmentIndex;
+          s++;
         }
       }
+    }
+
+    if (s < 20) {
+      break;
     }
 
     modifiedSlicesToUse.add(curImage);

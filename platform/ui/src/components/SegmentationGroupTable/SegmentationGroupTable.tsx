@@ -6,7 +6,7 @@ import SegmentationDropDownRow from './SegmentationDropDownRow';
 import NoSegmentationRow from './NoSegmentationRow';
 import AddSegmentRow from './AddSegmentRow';
 import SegmentationGroupSegment from './SegmentationGroupSegment';
-import { Select, Icon, Button, CheckBox } from '../../components';
+import { Select, Icon, Button, CheckBox, InputText } from '../../components';
 
 const SegmentationGroupTable = ({
   segmentations,
@@ -147,6 +147,12 @@ const SegmentationGroupTable = ({
         {activeSegmentation && activeSegmentation.segmentCount > 0 && (
           <div>
             <div className="group mx-0.5 mt-[8px] flex items-center">
+              {' '}
+              <Label className="flex flex-1 select-none flex-col pl-1 text-lg text-white">
+                Type
+              </Label>
+            </div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
               <Select
                 id="segment-type-select"
                 isClearable={false}
@@ -176,7 +182,24 @@ const SegmentationGroupTable = ({
               />
             </div>
             <div className="group mx-0.5 mt-[8px] flex items-center">
-              <Select
+              <InputText
+                id="segment-localization-select"
+                label={'Localization'}
+                value={
+                  activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.localization
+                }
+                onChange={e => {
+                  const matches = e.match(/([0-9]|10)[abc]?(\\([0-9]|10)[abc]?)?/g);
+                  let value = matches ? matches[0] : '';
+                  value += e[value.length] !== '\\' ? '' : '\\';
+                  onSegmentLocalizationEdit(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex,
+                    value
+                  );
+                }}
+              ></InputText>
+              {/* <Select
                 id="segment-localization-select"
                 isClearable={false}
                 onChange={option => {
@@ -202,7 +225,7 @@ const SegmentationGroupTable = ({
                     activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.localization
                 )}
                 className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
-              />
+              /> */}
             </div>
             <div className="group mx-0.5 mt-[8px] flex items-center">
               <CheckBox

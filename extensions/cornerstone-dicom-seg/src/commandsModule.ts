@@ -96,7 +96,7 @@ const commandsModule = ({
             toolGroupId,
             segmentIndex: 1,
             properties: {
-              label: 'Segment 1',
+              label: 'Nodule 1',
             },
           });
 
@@ -246,6 +246,8 @@ const commandsModule = ({
           color.slice(0, 3).map(value => value / 255)
         ).map(value => Math.round(value));
 
+        const volume = segmentationService.calculateSegmentVolume(segmentationId, segmentIndex);
+
         const segmentLabel =
           '{"name": "' +
           label +
@@ -255,6 +257,9 @@ const commandsModule = ({
           '",' +
           '"localization": "' +
           localization +
+          '",' +
+          '"volume": "' +
+          volume +
           '"}';
 
         const segmentMetadata = {

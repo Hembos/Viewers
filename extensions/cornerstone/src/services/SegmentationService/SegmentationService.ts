@@ -1526,31 +1526,35 @@ class SegmentationService extends PubSubService {
 
   public async calculateSegmentCapacity(segmentationId, segmentIndex) {
     return new Promise(resolve => {
-      const labelmapVolume = this.getLabelmapVolume(segmentationId);
-
-      const { dimensions, spacing } = labelmapVolume;
-      const scalarData = labelmapVolume.getScalarData();
-
-      const frameLength = dimensions[0] * dimensions[1];
-      const numFrames = dimensions[2];
-
-      let voxelIndex = 0;
-      let numPixels = 0;
-
-      for (let frame = 0; frame < numFrames; frame++) {
-        for (let p = 0; p < frameLength; p++) {
-          if (scalarData[voxelIndex] === segmentIndex) {
-            numPixels++;
-          }
-
-          voxelIndex++;
-        }
-      }
-
       calcAndDrawDiameter(segmentIndex);
 
-      resolve(numPixels * spacing[0] * spacing[1] * spacing[2]);
+      resolve(this.calculateSegmentVolume(segmentationId, segmentIndex));
     });
+  }
+
+  public calculateSegmentVolume(segmentationId, segmentIndex) {
+    const labelmapVolume = this.getLabelmapVolume(segmentationId);
+
+    const { dimensions, spacing } = labelmapVolume;
+    const scalarData = labelmapVolume.getScalarData();
+
+    const frameLength = dimensions[0] * dimensions[1];
+    const numFrames = dimensions[2];
+
+    let voxelIndex = 0;
+    let numPixels = 0;
+
+    for (let frame = 0; frame < numFrames; frame++) {
+      for (let p = 0; p < frameLength; p++) {
+        if (scalarData[voxelIndex] === segmentIndex) {
+          numPixels++;
+        }
+
+        voxelIndex++;
+      }
+    }
+
+    return numPixels * spacing[0] * spacing[1] * spacing[2];
   }
 
   private _setSegmentLabel(
