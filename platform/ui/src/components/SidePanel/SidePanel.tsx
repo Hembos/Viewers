@@ -325,73 +325,8 @@ const SidePanel = ({ side, className, activeTabIndex: activeTabIndexProp, tabs, 
       style={style}
     >
       {panelOpen ? (
-        <React.Fragment>
-          {/** Panel Header with Arrow and Close Actions */}
-          <div
-            className={classnames('flex-static bg-primary-dark flex h-9 cursor-pointer px-[10px]')}
-            onClick={() => {
-              updatePanelOpen(prev => !prev);
-              // slideToActivePanel();
-            }}
-            data-cy={`side-panel-header-${side}`}
-          >
-            {/* TODO This should be redesigned to not be a button. */}
-            <LegacyButton
-              variant="text"
-              color="inherit"
-              border="none"
-              rounded="none"
-              className="flex-static relative flex w-full flex-row items-center px-3"
-              name={tabs.length === 1 ? `${tabs[activeTabIndex].name}` : ''}
-            >
-              <Icon
-                name={openStateIconName[side]}
-                className={classnames(
-                  'text-primary-active absolute',
-                  side === 'left' && 'order-last'
-                )}
-                style={{ ...position[side] }}
-              />
-              {/* Todo: ass secondary label here */}
-              <span className="text-primary-active">
-                {tabs.length === 1 && (t(tabs[activeTabIndex].label) as string)}
-              </span>
-            </LegacyButton>
-          </div>
-          {tabs.length > 1 &&
-            _getMoreThanOneTabLayout(
-              swiperRef,
-              setSwiper,
-              prevRef,
-              nextRef,
-              tabs,
-              activeTabIndex,
-              updateActiveTabIndex
-            )}
-          {/** carousel navigation with the arrows */}
-          {/** only show carousel nav if tabs are more than 3 tabs */}
-          {tabs.length > 3 && (
-            <div className="text-primary-active bg-primary-dark flex w-full justify-end gap-2 py-1 px-2">
-              <button
-                ref={prevRef}
-                className="swiper-button-prev-custom"
-              >
-                <Icon
-                  name={'icon-prev'}
-                  className={classnames('text-primary-active')}
-                />
-              </button>
-              <button
-                ref={nextRef}
-                className="swiper-button-next-custom"
-              >
-                <Icon
-                  name={'icon-next'}
-                  className={classnames('text-primary-active')}
-                />
-              </button>
-            </div>
-          )}
+        <>
+          {getOpenStateComponent()}
           <ActiveComponent />
         </>
       ) : (

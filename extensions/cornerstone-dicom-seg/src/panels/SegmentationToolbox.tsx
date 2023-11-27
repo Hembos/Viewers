@@ -41,13 +41,10 @@ const initialState = {
     brushSize: 15,
     thresholdRange: [-500, 500],
   },
-<<<<<<< HEAD
-=======
   SmartBrush: {
     radius: 5,
     sensitivity: 0.5,
   },
->>>>>>> feat/smart-segmentation
   activeTool: null,
 };
 
