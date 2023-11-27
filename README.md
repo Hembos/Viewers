@@ -27,19 +27,30 @@
   <img src="platform/docs/docs/assets/img/AddSegment.png"/>
 
   <h2>Saving created measurments (diameters)</h2>
-  To save the obtained diameters, you need to go to the tab "Measurements" and click on "Create Report". To change the name of the measurement, you need to click on the “pencil”, which is located to the right of its current name
+  <p>To save the obtained diameters, you need to go to the tab "Measurements" and click on "Create Report". To change the name of the measurement, you need to click on the “pencil”, which is located to the right of its current name</p>
   <img src="platform/docs/docs/assets/img/SaveMeasurement.png"/>
 
   <h2>Demonstration of work</h2>
   <img src="platform/docs/docs/assets/img/workExample.gif"/>
   <img src="platform/docs/docs/assets/img/workExample2.gif"/>
 
+  <h2>Format for saving additional information</h2>
+  <p>All segmentation masks are stored in the dicom tag "SegmentSequence" as an array. Each array element has a dicom tag "SegmentLabel", that stores additional information in the json format. </p>
+
+  <pre style="text-align: left">
+  {
+    "name": "Nodule 1",
+    "type": "Part solid",
+    "localization": 1,
+    "volume": 2213.43
+  }
+  </pre>
+
   <h2>Functional requirements</h2>
   <p>For a series of 100 images, about 1 gigabyte of RAM is required</p>
   <p>To calculate diameters, it is necessary to zoom in on the image, otherwise inaccuracies in the display of diameters may occur</p>
   <p></p>
 
-  <h2>Format for saving additional information</h2>
 
 </div>
 
