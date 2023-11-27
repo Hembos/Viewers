@@ -189,9 +189,9 @@ const SegmentationGroupTable = ({
                   activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.localization
                 }
                 onChange={e => {
-                  const matches = e.match(/([0-9]|10)[abc]?(\\([0-9]|10)[abc]?)?/g);
+                  const matches = e.match(/([0-9]|10)[abc]?(\/([0-9]|10)[abc]?)?/g);
                   let value = matches ? matches[0] : '';
-                  value += e[value.length] !== '\\' ? '' : '\\';
+                  value += e[value.length] !== '/' ? '' : '/';
                   onSegmentLocalizationEdit(
                     activeSegmentation.id,
                     activeSegmentation.activeSegmentIndex,
@@ -199,33 +199,6 @@ const SegmentationGroupTable = ({
                   );
                 }}
               ></InputText>
-              {/* <Select
-                id="segment-localization-select"
-                isClearable={false}
-                onChange={option => {
-                  onSegmentLocalizationEdit(
-                    activeSegmentation.id,
-                    activeSegmentation.activeSegmentIndex,
-                    option.value
-                  );
-                }}
-                components={{
-                  DropdownIndicator: () => (
-                    <Icon
-                      name={'chevron-down-new'}
-                      className="mr-2"
-                    />
-                  ),
-                }}
-                isSearchable={false}
-                options={localizations}
-                value={localizations?.find(
-                  o =>
-                    o.value ===
-                    activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.localization
-                )}
-                className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
-              /> */}
             </div>
             <div className="group mx-0.5 mt-[8px] flex items-center">
               <CheckBox

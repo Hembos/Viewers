@@ -94,7 +94,6 @@ export default function storeSegmentationDialog(uiDialogService, { extensionMana
                 value={value.value}
                 placeholder={segNames.find(option => option.value === value.value).placeHolder}
                 onChange={evt => {
-                  console.log(evt, value);
                   setValue(v => evt);
                 }}
                 isClearable={false}

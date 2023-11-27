@@ -61,6 +61,13 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
         };
       });
 
+    const measureNames = [
+      { value: 'Left Lung', label: 'Left Lung', placeHolder: 'Left Lung' },
+      { value: 'Mediastinum', label: 'Mediastinum', placeHolder: 'Mediastinum' },
+      { value: 'Right lung', label: 'Right lung', placeHolder: 'Right lung' },
+      { value: 'Other', label: 'Other', placeHolder: 'Other' },
+    ];
+
     dialogId = uiDialogService.create({
       centralize: true,
       isDraggable: false,
@@ -70,7 +77,9 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
       contentProps: {
         title: 'Create Report',
         value: {
-          label: '',
+          value: 'Left Lung',
+          label: 'Left Lung',
+          placeHolder: 'Left Lung',
           dataSourceName: extensionManager.activeDataSource,
         },
         noCloseButton: true,
@@ -113,16 +122,16 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
                   isClearable={false}
                 />
               )}
-              <Input
-                autoFocus
-                label="Enter the report name"
-                labelClassName="text-white text-[14px] leading-[1.2]"
-                className="border-primary-main bg-black"
-                type="text"
-                value={value.label}
-                onChange={onChangeHandler}
-                onKeyPress={onKeyPressHandler}
-                required
+              <Select
+                closeMenuOnSelect={true}
+                className="border-primary-main mr-2 bg-black"
+                options={measureNames}
+                value={value.value}
+                placeholder={measureNames.find(option => option.value === value.value).placeHolder}
+                onChange={evt => {
+                  setValue(v => evt);
+                }}
+                isClearable={false}
               />
             </>
           );

@@ -39,6 +39,8 @@
   <p>To calculate diameters, it is necessary to zoom in on the image, otherwise inaccuracies in the display of diameters may occur</p>
   <p></p>
 
+  <h2>Format for saving additional information</h2>
+
 </div>
 
 

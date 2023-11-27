@@ -197,7 +197,6 @@ export function calcAndDrawDiameter(segmentIndex) {
         diameters = tmpDiameters;
         maxLength = tmpLength;
         imageIndex = i;
-        console.log(diameters);
       }
     }
   }
@@ -221,5 +220,25 @@ export function calcAndDrawDiameter(segmentIndex) {
     imageIndex,
     segmentation,
     viewport
+  );
+
+  const measurements = window.services.measurementService.getMeasurements();
+  console.log(measurements);
+  measurements[measurements.length - 2]['label'] =
+    window.services.segmentationService.getSegmentation(segmentationId).segments[segmentIndex]
+      .label + ' max';
+  measurements[measurements.length - 1]['label'] =
+    window.services.segmentationService.getSegmentation(segmentationId).segments[segmentIndex]
+      .label + ' orthogonal';
+
+  window.services.measurementService.update(
+    measurements[measurements.length - 2]['uid'],
+    measurements[measurements.length - 2],
+    true
+  );
+  window.services.measurementService.update(
+    measurements[measurements.length - 1]['uid'],
+    measurements[measurements.length - 1],
+    true
   );
 }
