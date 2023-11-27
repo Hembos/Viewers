@@ -24,6 +24,8 @@ import { easeInOutBell, reverseEaseInOutBell } from '../../utils/transitions';
 import { Segment, Segmentation, SegmentationConfig } from './SegmentationServiceTypes';
 import { mapROIContoursToRTStructData } from './RTSTRUCT/mapROIContoursToRTStructData';
 
+import { calcAndDrawDiameter } from '../../tools/DiameterTool';
+
 const { COLOR_LUT } = cstConstants;
 const LABELMAP = csToolsEnums.SegmentationRepresentations.Labelmap;
 const CONTOUR = csToolsEnums.SegmentationRepresentations.Contour;
@@ -74,6 +76,8 @@ class SegmentationService extends PubSubService {
     this.segmentations = {};
 
     this.servicesManager = servicesManager;
+
+    this.autoDiameter = false;
 
     this._initSegmentationService();
   }
@@ -155,7 +159,7 @@ class SegmentationService extends PubSubService {
     );
 
     segmentation.segments[segmentIndex] = {
-      label: config.properties?.label ?? `Segment ${segmentIndex}`,
+      label: config.properties?.label ?? `Nodule ${segmentIndex}`,
       segmentIndex: segmentIndex,
       color: [rgbaColor[0], rgbaColor[1], rgbaColor[2]],
       opacity: rgbaColor[3],
@@ -208,6 +212,10 @@ class SegmentationService extends PubSubService {
     this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
       segmentation,
     });
+  }
+
+  public setAutoDiameter(autoDiameter: bool): void {
+    this.autoDiameter = autoDiameter;
   }
 
   public removeSegment(segmentationId: string, segmentIndex: number): void {
@@ -584,7 +592,7 @@ class SegmentationService extends PubSubService {
       };
 
       return {
-        label: SegmentLabel || `Segment ${SegmentNumber}`,
+        label: JSON.parse(SegmentLabel).name || `Segment ${SegmentNumber}`,
         segmentIndex: Number(SegmentNumber),
         category: SegmentedPropertyCategoryCodeSequence
           ? SegmentedPropertyCategoryCodeSequence.CodeMeaning
@@ -598,6 +606,8 @@ class SegmentationService extends PubSubService {
         opacity: 255,
         isVisible: true,
         isLocked: false,
+        typeNodle: JSON.parse(SegmentLabel).type,
+        localization: JSON.parse(SegmentLabel).localization,
       };
     });
 
@@ -1444,6 +1454,107 @@ class SegmentationService extends PubSubService {
 
   public setSegmentLabel(segmentationId: string, segmentIndex: number, label: string) {
     this._setSegmentLabel(segmentationId, segmentIndex, label);
+  }
+
+  public setSegmentType(segmentationId: string, segmentIndex: number, type: string) {
+    this._setSegmentType(segmentationId, segmentIndex, type);
+  }
+
+  private _setSegmentType(
+    segmentationId: string,
+    segmentIndex: number,
+    type: string,
+    suppressEvents = false
+  ) {
+    const segmentation = this.getSegmentation(segmentationId);
+
+    if (segmentation === undefined) {
+      throw new Error(`no segmentation for segmentationId: ${segmentationId}`);
+    }
+
+    const segmentInfo = segmentation.segments[segmentIndex];
+
+    if (segmentInfo === undefined) {
+      throw new Error(`Segment ${segmentIndex} not yet added to segmentation: ${segmentationId}`);
+    }
+
+    segmentInfo.typeNodle = type;
+
+    if (suppressEvents === false) {
+      // this._setSegmentationModified(segmentationId);
+      this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
+        segmentation,
+      });
+    }
+  }
+
+  public setSegmentLocalization(
+    segmentationId: string,
+    segmentIndex: number,
+    localization: string
+  ) {
+    this._setSegmentLocalization(segmentationId, segmentIndex, localization);
+  }
+
+  private _setSegmentLocalization(
+    segmentationId: string,
+    segmentIndex: number,
+    localization: string,
+    suppressEvents = false
+  ) {
+    const segmentation = this.getSegmentation(segmentationId);
+
+    if (segmentation === undefined) {
+      throw new Error(`no segmentation for segmentationId: ${segmentationId}`);
+    }
+
+    const segmentInfo = segmentation.segments[segmentIndex];
+
+    if (segmentInfo === undefined) {
+      throw new Error(`Segment ${segmentIndex} not yet added to segmentation: ${segmentationId}`);
+    }
+
+    segmentInfo.localization = localization;
+
+    if (suppressEvents === false) {
+      // this._setSegmentationModified(segmentationId);
+      this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
+        segmentation,
+      });
+    }
+  }
+
+  public async calculateSegmentCapacity(segmentationId, segmentIndex) {
+    return new Promise(resolve => {
+      calcAndDrawDiameter(segmentIndex);
+
+      resolve(this.calculateSegmentVolume(segmentationId, segmentIndex));
+    });
+  }
+
+  public calculateSegmentVolume(segmentationId, segmentIndex) {
+    const labelmapVolume = this.getLabelmapVolume(segmentationId);
+
+    const { dimensions, spacing } = labelmapVolume;
+    const scalarData = labelmapVolume.getScalarData();
+
+    const frameLength = dimensions[0] * dimensions[1];
+    const numFrames = dimensions[2];
+
+    let voxelIndex = 0;
+    let numPixels = 0;
+
+    for (let frame = 0; frame < numFrames; frame++) {
+      for (let p = 0; p < frameLength; p++) {
+        if (scalarData[voxelIndex] === segmentIndex) {
+          numPixels++;
+        }
+
+        voxelIndex++;
+      }
+    }
+
+    return numPixels * spacing[0] * spacing[1] * spacing[2];
   }
 
   private _setSegmentLabel(

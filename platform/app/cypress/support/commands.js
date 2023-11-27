@@ -186,10 +186,18 @@ Cypress.Commands.add('addAngle', (viewport, firstClick, secondClick, thirdClick)
 });
 
 Cypress.Commands.add('expectMinimumThumbnails', (seriesToWait = 1) => {
+<<<<<<< HEAD
   cy.get('[data-cy="study-browser-thumbnail"]', { timeout: 50000 }).should(
     'have.length.gte',
     seriesToWait
   );
+=======
+  cy.get('[data-cy="study-browser-thumbnail"]', { timeout: 50000 }).as('thumbnails');
+
+  cy.get('@thumbnails').should($itemList => {
+    expect($itemList.length).to.be.gte(seriesToWait);
+  });
+>>>>>>> feat/smart-segmentation
 });
 
 //Command to wait DICOM image to load into the viewport
@@ -274,6 +282,14 @@ Cypress.Commands.add(
   (firstClick = [150, 100], secondClick = [130, 170]) => {
     // Assign an alias to the button element
     cy.get('@measurementToolsBtnPrimary').as('lengthButton');
+<<<<<<< HEAD
+=======
+
+    cy.get('@lengthButton').should('have.attr', 'data-tool', 'Length');
+    cy.get('@lengthButton').click();
+
+    cy.get('@lengthButton').should('have.class', 'active');
+>>>>>>> feat/smart-segmentation
 
     cy.get('@lengthButton').should('have.attr', 'data-tool', 'Length');
     cy.get('@lengthButton').click();

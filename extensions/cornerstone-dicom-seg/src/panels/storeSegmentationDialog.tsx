@@ -2,12 +2,12 @@
 import React from 'react';
 import { ButtonEnums, Dialog, Input, Select } from '@ohif/ui';
 
-export const CREATE_REPORT_DIALOG_RESPONSE = {
+export const CREATE_SEGMENTATION_DIALOG_RESPONSE = {
   CANCEL: 0,
-  CREATE_REPORT: 1,
+  CREATE: 1,
 };
 
-export default function createReportDialogPrompt(uiDialogService, { extensionManager }) {
+export default function storeSegmentationDialog(uiDialogService, { extensionManager }) {
   return new Promise(function (resolve, reject) {
     let dialogId = undefined;
 
@@ -16,9 +16,8 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
       uiDialogService.dismiss({ id: dialogId });
       // Notify of cancel action
       resolve({
-        action: CREATE_REPORT_DIALOG_RESPONSE.CANCEL,
+        action: CREATE_SEGMENTATION_DIALOG_RESPONSE.CANCEL,
         value: undefined,
-        dataSourceName: undefined,
       });
     };
 
@@ -32,40 +31,23 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
       switch (action.id) {
         case 'save':
           resolve({
-            action: CREATE_REPORT_DIALOG_RESPONSE.CREATE_REPORT,
+            action: CREATE_SEGMENTATION_DIALOG_RESPONSE.CREATE,
             value: value.label,
-            dataSourceName: value.dataSourceName,
           });
           break;
         case 'cancel':
           resolve({
-            action: CREATE_REPORT_DIALOG_RESPONSE.CANCEL,
+            action: CREATE_SEGMENTATION_DIALOG_RESPONSE.CANCEL,
             value: undefined,
-            dataSourceName: undefined,
           });
           break;
       }
     };
 
-    const dataSourcesOpts = Object.keys(extensionManager.dataSourceMap)
-      .filter(ds => {
-        const configuration = extensionManager.dataSourceDefs[ds]?.configuration;
-        const supportsStow = configuration?.supportsStow ?? configuration?.wadoRoot;
-        return supportsStow;
-      })
-      .map(ds => {
-        return {
-          value: ds,
-          label: ds,
-          placeHolder: ds,
-        };
-      });
-
-    const measureNames = [
+    const segNames = [
       { value: 'Left Lung', label: 'Left Lung', placeHolder: 'Left Lung' },
       { value: 'Mediastinum', label: 'Mediastinum', placeHolder: 'Mediastinum' },
       { value: 'Right lung', label: 'Right lung', placeHolder: 'Right lung' },
-      { value: 'Other', label: 'Other', placeHolder: 'Other' },
     ];
 
     dialogId = uiDialogService.create({
@@ -75,12 +57,11 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
       useLastPosition: false,
       showOverlay: true,
       contentProps: {
-        title: 'Create Report',
+        title: 'Create Segmentation',
         value: {
           value: 'Left Lung',
           label: 'Left Lung',
           placeHolder: 'Left Lung',
-          dataSourceName: extensionManager.activeDataSource,
         },
         noCloseButton: true,
         onClose: _handleClose,
@@ -99,35 +80,19 @@ export default function createReportDialogPrompt(uiDialogService, { extensionMan
             if (event.key === 'Enter') {
               uiDialogService.dismiss({ id: dialogId });
               resolve({
-                action: CREATE_REPORT_DIALOG_RESPONSE.CREATE_REPORT,
+                action: CREATE_SEGMENTATION_DIALOG_RESPONSE.CREATE,
                 value: value.label,
               });
             }
           };
           return (
             <>
-              {dataSourcesOpts.length > 1 && (
-                <Select
-                  closeMenuOnSelect={true}
-                  className="border-primary-main mr-2 bg-black"
-                  options={dataSourcesOpts}
-                  placeholder={
-                    dataSourcesOpts.find(option => option.value === value.dataSourceName)
-                      .placeHolder
-                  }
-                  value={value.dataSourceName}
-                  onChange={evt => {
-                    setValue(v => ({ ...v, dataSourceName: evt.value }));
-                  }}
-                  isClearable={false}
-                />
-              )}
               <Select
                 closeMenuOnSelect={true}
                 className="border-primary-main mr-2 bg-black"
-                options={measureNames}
+                options={segNames}
                 value={value.value}
-                placeholder={measureNames.find(option => option.value === value.value).placeHolder}
+                placeholder={segNames.find(option => option.value === value.value).placeHolder}
                 onChange={evt => {
                   setValue(v => evt);
                 }}

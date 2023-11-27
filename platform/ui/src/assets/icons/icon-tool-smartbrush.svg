@@ -1,0 +1,20 @@
+<svg width="23.749373700000003" height="24.749403800000003" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>icon-tool-brush</title>
+
+ <g>
+  <title>Layer 1</title>
+  <g fill-rule="evenodd" fill="none" id="Artboards">
+   <g id="Segmentation---assets">
+    <g id="icon-tool-brush">
+     <g stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" id="brush">
+      <path id="Path" d="m1.16031,23.25571c-0.17909,-0.08515 -0.29094,-0.26809 -0.28509,-0.46631c0.00585,-0.19822 0.12829,-0.37425 0.31209,-0.44869c2.381,-0.964 1.614,-3.678 2.321,-5.129c0.86584,-1.74408 2.97226,-2.46894 4.728,-1.627c5.316,2.592 -1.012,10.557 -7.076,7.671z"/>
+      <path id="Path" d="m22.40831,1.22471c-0.54559,-0.48564 -1.37489,-0.46286 -1.893,0.052l-11.891,11.859c1.57602,0.48218 2.88526,1.58972 3.622,3.064l10.329,-13.082c0.45583,-0.57524 0.3825,-1.40645 -0.167,-1.893z"/>
+     </g>
+     <rect height="25" width="25" y="-0.125" x="-0.625" id="Rectangle"/>
+     <text id="svg_1" class="small" y="-0.125" x="-0.625">My</text>
+    </g>
+   </g>
+  </g>
+  <text font-style="italic" font-weight="bold" transform="matrix(1.45769 0 0 1.76449 -10.1683 -18.8866)" stroke="#000" xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="7" id="svg_2" y="23.75708" x="15.4695" stroke-width="0" fill="#DDDDDD">AI</text>
+ </g>
+</svg>

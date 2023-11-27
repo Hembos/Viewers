@@ -23,6 +23,8 @@ export default function PanelSegmentation({
   );
 
   const [segmentations, setSegmentations] = useState(() => segmentationService.getSegmentations());
+  const [showROIVolume, setShowROIVolume] = useState(false);
+  const [ROIVolume, setROIVolume] = useState('');
 
   useEffect(() => {
     // ~~ Subscription
@@ -93,6 +95,30 @@ export default function PanelSegmentation({
       }
 
       segmentationService.setSegmentLabel(segmentationId, segmentIndex, label);
+    });
+  };
+
+  const onSegmentTypeEdit = (segmentationId, segmentIndex, newType) => {
+    segmentationService.setSegmentType(segmentationId, segmentIndex, newType);
+  };
+
+  const onSegmentLocalizationEdit = (segmentationId, segmentIndex, newLocalization) => {
+    segmentationService.setSegmentLocalization(segmentationId, segmentIndex, newLocalization);
+  };
+
+  const onAutoDiameter = state => {
+    segmentationService.setAutoDiameter(state);
+  };
+
+  const onSegmentCapacityCalc = (segmentationId, segmentIndex) => {
+    segmentationService.calculateSegmentCapacity(segmentationId, segmentIndex).then(value => {
+      setROIVolume('roi volume (mm³): ' + value.toFixed(2));
+
+      setShowROIVolume(true);
+
+      setTimeout(function () {
+        setShowROIVolume(false);
+      }, 3000);
     });
   };
 
@@ -215,6 +241,15 @@ export default function PanelSegmentation({
     }
   };
 
+  const saveSegmentation = segmentationId => {
+    const datasources = extensionManager.getActiveDataSource();
+
+    commandsManager.runCommand('saveSegmentation', {
+      segmentationId,
+      dataSource: datasources[0],
+    });
+  };
+
   return (
     <>
       <div className="flex min-h-0 flex-auto select-none flex-col justify-between">
@@ -222,15 +257,22 @@ export default function PanelSegmentation({
           title={t('Segmentations')}
           segmentations={segmentations}
           disableEditing={configuration.disableEditing}
+          showROIVolume={showROIVolume}
+          ROIVolume={ROIVolume}
           activeSegmentationId={selectedSegmentationId || ''}
           onSegmentationAdd={onSegmentationAdd}
           onSegmentationClick={onSegmentationClick}
           onSegmentationDelete={onSegmentationDelete}
           onSegmentationDownload={onSegmentationDownload}
           storeSegmentation={storeSegmentation}
+          saveSegmentation={saveSegmentation}
           onSegmentationEdit={onSegmentationEdit}
           onSegmentClick={onSegmentClick}
           onSegmentEdit={onSegmentEdit}
+          onSegmentTypeEdit={onSegmentTypeEdit}
+          onAutoDiameter={onAutoDiameter}
+          onSegmentLocalizationEdit={onSegmentLocalizationEdit}
+          onSegmentCapacityCalc={onSegmentCapacityCalc}
           onSegmentAdd={onSegmentAdd}
           onSegmentColorClick={onSegmentColorClick}
           onSegmentDelete={onSegmentDelete}

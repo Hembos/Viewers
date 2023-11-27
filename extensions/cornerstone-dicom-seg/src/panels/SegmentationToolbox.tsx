@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState, useReducer } from 'react';
 import { AdvancedToolbox, InputDoubleRange, useViewportGrid } from '@ohif/ui';
 import { Types } from '@ohif/extension-cornerstone';
 import { utilities } from '@cornerstonejs/tools';
+import { LegacyButton } from '@ohif/ui';
 
 const { segmentation: segmentationUtils } = utilities;
 
@@ -15,6 +16,7 @@ const TOOL_TYPES = {
   SPHERE_SCISSOR: 'SphereScissor',
   THRESHOLD_CIRCULAR_BRUSH: 'ThresholdCircularBrush',
   THRESHOLD_SPHERE_BRUSH: 'ThresholdSphereBrush',
+  SMART_BRUSH: 'SmartBrush',
 };
 
 const ACTIONS = {
@@ -39,6 +41,13 @@ const initialState = {
     brushSize: 15,
     thresholdRange: [-500, 500],
   },
+<<<<<<< HEAD
+=======
+  SmartBrush: {
+    radius: 5,
+    sensitivity: 0.5,
+  },
+>>>>>>> feat/smart-segmentation
   activeTool: null,
 };
 
@@ -197,6 +206,52 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
     [toolGroupService, dispatch]
   );
 
+  const onSmartBrushChange = useCallback(
+    (valueAsStringOrNumber, toolCategory, type: string) => {
+      let value = valueAsStringOrNumber;
+      if (type === 'sensitivity' || type === 'radius') {
+        value = Number(valueAsStringOrNumber);
+      }
+
+      const toolNames = _getToolNamesFromCategory(toolCategory);
+
+      const config = {};
+      config[type] = value;
+
+      toolNames.forEach(toolName => {
+        toolGroupService.getToolGroupIds()?.forEach(toolGroupId => {
+          const toolGroup = toolGroupService.getToolGroup(toolGroupId);
+
+          toolGroup.setToolConfiguration(toolName, config);
+        });
+      });
+
+      dispatch({
+        type: ACTIONS.SET_TOOL_CONFIG,
+        payload: {
+          tool: toolCategory,
+          config: config,
+        },
+      });
+    },
+    [toolGroupService, dispatch]
+  );
+
+  const onSmartBrushPropogate = useCallback(toolCategory => {
+    const toolNames = _getToolNamesFromCategory(toolCategory);
+
+    toolNames.forEach(toolName => {
+      toolGroupService.getToolGroupIds()?.forEach(toolGroupId => {
+        const toolGroup = toolGroupService.getToolGroup(toolGroupId);
+
+        const smartBrushInst = toolGroup.getToolInstance(toolName);
+        if (smartBrushInst !== undefined) {
+          toolGroup.getToolInstance(toolName).propogate();
+        }
+      });
+    });
+  }, []);
+
   const handleRangeChange = useCallback(
     newRange => {
       if (
@@ -265,6 +320,49 @@ function SegmentationToolbox({ servicesManager, extensionManager }) {
                 { value: TOOL_TYPES.SPHERE_BRUSH, label: 'Sphere' },
               ],
               onChange: value => setToolActive(value),
+            },
+          ],
+        },
+        {
+          name: 'SmartBrush',
+          icon: 'icon-tool-smartbrush',
+          disabled: !toolsEnabled,
+          active: state.activeTool === TOOL_TYPES.SMART_BRUSH,
+          onClick: () => setToolActive(TOOL_TYPES.SMART_BRUSH),
+          options: [
+            {
+              name: 'Radius',
+              id: 'smartBrush-radius',
+              type: 'range',
+              min: 2,
+              max: 10,
+              value: state.SmartBrush.radius,
+              step: 1,
+              onChange: value => onSmartBrushChange(value, 'SmartBrush', 'radius'),
+            },
+            {
+              name: 'Sensitivity',
+              id: 'smartBrush-sensitivity',
+              type: 'range',
+              min: 0,
+              max: 1,
+              value: state.SmartBrush.sensitivity,
+              step: 0.05,
+              onChange: value => onSmartBrushChange(value, 'SmartBrush', 'sensitivity'),
+            },
+            {
+              name: 'Propogate',
+              id: 'smartBrush-propogate',
+              type: 'custom',
+              children: (
+                <LegacyButton
+                  onClick={() => {
+                    onSmartBrushPropogate('SmartBrush');
+                  }}
+                >
+                  Propogate
+                </LegacyButton>
+              ),
             },
           ],
         },
@@ -394,6 +492,9 @@ function _getToolNamesFromCategory(category) {
       break;
     case 'ThresholdBrush':
       toolNames = ['ThresholdCircularBrush', 'ThresholdSphereBrush'];
+      break;
+    case 'SmartBrush':
+      toolNames = ['SmartBrush'];
       break;
     default:
       break;

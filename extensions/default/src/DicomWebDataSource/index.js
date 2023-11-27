@@ -17,6 +17,8 @@ import StaticWadoClient from './utils/StaticWadoClient';
 import getDirectURL from '../utils/getDirectURL';
 import { fixBulkDataURI } from './utils/fixBulkDataURI';
 
+import { WadoClientWithSave } from './utils/WadoClientWithSave';
+
 const { DicomMetaDictionary, DicomDict } = dcmjs.data;
 
 const { naturalizeDataset, denaturalizeDataset } = DicomMetaDictionary;
@@ -108,7 +110,7 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
 
       wadoDicomWebClient = dicomWebConfig.staticWado
         ? new StaticWadoClient(wadoConfig)
-        : new api.DICOMwebClient(wadoConfig);
+        : new WadoClientWithSave(wadoConfig);
     },
     query: {
       studies: {
@@ -243,6 +245,9 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
 
           await wadoDicomWebClient.storeInstances(options);
         }
+      },
+      save: async dataset => {
+        await wadoDicomWebClient.save({ datasets: [dataset] });
       },
     },
 

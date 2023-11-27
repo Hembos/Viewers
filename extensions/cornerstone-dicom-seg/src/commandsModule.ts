@@ -1,5 +1,6 @@
 import dcmjs from 'dcmjs';
 import { createReportDialogPrompt } from '@ohif/extension-default';
+import storeSegmentationDialog from './panels/storeSegmentationDialog';
 import { ServicesManager, Types } from '@ohif/core';
 import { cache, metaData } from '@cornerstonejs/core';
 import { segmentation as cornerstoneToolsSegmentation } from '@cornerstonejs/tools';
@@ -95,7 +96,7 @@ const commandsModule = ({
             toolGroupId,
             segmentIndex: 1,
             properties: {
-              label: 'Segment 1',
+              label: 'Nodule 1',
             },
           });
 
@@ -239,15 +240,31 @@ const commandsModule = ({
       labelmapObj.segmentsOnLabelmap.forEach(segmentIndex => {
         // segmentation service already has a color for each segment
         const segment = segmentationInOHIF?.segments[segmentIndex];
-        const { label, color } = segment;
+        const { label, color, typeNodle, localization } = segment;
 
         const RecommendedDisplayCIELabValue = dcmjs.data.Colors.rgb2DICOMLAB(
           color.slice(0, 3).map(value => value / 255)
         ).map(value => Math.round(value));
 
+        const volume = segmentationService.calculateSegmentVolume(segmentationId, segmentIndex);
+
+        const segmentLabel =
+          '{"name": "' +
+          label +
+          '",' +
+          '"type": "' +
+          typeNodle +
+          '",' +
+          '"localization": "' +
+          localization +
+          '",' +
+          '"volume": "' +
+          volume +
+          '"}';
+
         const segmentMetadata = {
           SegmentNumber: segmentIndex.toString(),
-          SegmentLabel: label,
+          SegmentLabel: segmentLabel,
           SegmentAlgorithmType: 'MANUAL',
           SegmentAlgorithmName: 'OHIF Brush',
           RecommendedDisplayCIELabValue,
@@ -305,11 +322,11 @@ const commandsModule = ({
      * otherwise throws an error.
      */
     storeSegmentation: async ({ segmentationId, dataSource }) => {
-      const promptResult = await createReportDialogPrompt(uiDialogService, {
+      const promptResult = await storeSegmentationDialog(uiDialogService, {
         extensionManager,
       });
 
-      if (promptResult.action !== 1 && promptResult.value) {
+      if (promptResult.action !== 1) {
         return;
       }
 
@@ -348,6 +365,40 @@ const commandsModule = ({
 
       return naturalizedReport;
     },
+    saveSegmentation: async ({ segmentationId, dataSource }) => {
+      const segmentation = segmentationService.getSegmentation(segmentationId);
+
+      if (!segmentation) {
+        throw new Error('No segmentation found');
+      }
+
+      const { label } = segmentation;
+      const SeriesDescription = label;
+
+      const SOPClassUID = displaySetService.activeDisplaySets[1].SOPClassUID;
+      // const SOPInstanceUID = displaySetService.activeDisplaySets[1].SOPInstanceUID;
+      const SeriesInstanceUID = displaySetService.activeDisplaySets[1].SeriesInstanceUID;
+      const StudyInstanceUID = displaySetService.activeDisplaySets[1].StudyInstanceUID;
+
+      const generatedData = actions.generateSegmentation({
+        segmentationId,
+        options: {
+          SeriesDescription,
+          SOPClassUID,
+          // SOPInstanceUID,
+          SeriesInstanceUID,
+          StudyInstanceUID,
+        },
+      });
+
+      if (!generatedData || !generatedData.dataset) {
+        throw new Error('Error during segmentation generation');
+      }
+
+      const { dataset: naturalizedReport } = generatedData;
+
+      await dataSource.store.dicom(naturalizedReport);
+    },
   };
 
   const definitions = {
@@ -371,6 +422,9 @@ const commandsModule = ({
     },
     storeSegmentation: {
       commandFn: actions.storeSegmentation,
+    },
+    saveSegmentation: {
+      commandFn: actions.saveSegmentation,
     },
   };
 

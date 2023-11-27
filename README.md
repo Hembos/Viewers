@@ -1,5 +1,60 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+
+<div align="center">
+  <h1>Smart segmentation and annotation</h1>
+
+  <h2>Smart brush</h2>
+  <p>A semi-automatic segmentation tool that allows you to interactively highlight areas of interest. This tool allows you to select complex-shaped nodules in a few clicks. To activate the tool, you need to go to the panel shown below and select the brush with the signature "AI". To select an area, click on its different ends. Then you can click the "Propogate" button to select an area in adjacent images. The number of adjacent images is determined by the radius. For the highest quality selection on several slices, it is best to choose the slice with the largest area size</p>
+  <img src="platform/docs/docs/assets/img/SmartBrush.png"/>
+
+  <h2>Auto diameter finding</h2>
+  <p>There are two diameter search modes: manual and automatic. In manual mode, you need to select the image on which you want to make the calculation and click on the "Volume" button. In this case, the diameters will be plotted on the selected image. In automatic mode, being on any image, you can find the maximum diameter in the axial section of the selected lesion. In this case, a transition will take place to the image in which the diameter is highlighted. To activate automatic mode, you must check the box "Auto diameter"</p>
+  <img src="platform/docs/docs/assets/img/AutoDiameter.png"/>
+  <h2>Volume calculation</h2>
+  <p>To calculate the volume of the lesion, you must click on the "Volume" button. The volume will be displayed below it in cubic millimeters and will be displayed for 3 seconds</p>
+  <img src="platform/docs/docs/assets/img/VolumeCalculation.png"/>
+
+  <h2>Selecting the type and localization of the nodule</h2>
+  <p>For each nodule, you can select the type and its localization. To do this, click on the combo boxes and select the appropriate value</p>
+  <img src="platform/docs/docs/assets/img/NoduleType.png"/>
+  <img src="platform/docs/docs/assets/img/NoduleLocalization.png"/>
+
+  <h2>Creating and saving segmentations</h2>
+  <p>To create a new segmentation, click on "Add New Segmentation". If a new segmentation has been created, then you need to save it to click on "Export DICOM SEG" and select the appropriate name. If you need to save changes, you need to click on "Save". To create a new fireplace, click on "Add Segment". To change the name of the nodule, you need to click on the “pencil”, which is located to the right of its current name</p>
+  <img src="platform/docs/docs/assets/img/CreateSegmentation.png"/>
+  <img src="platform/docs/docs/assets/img/exportSegmentation.png"/>
+  <img src="platform/docs/docs/assets/img/AddSegment.png"/>
+
+  <h2>Saving created measurments (diameters)</h2>
+  <p>To save the obtained diameters, you need to go to the tab "Measurements" and click on "Create Report". To change the name of the measurement, you need to click on the “pencil”, which is located to the right of its current name</p>
+  <img src="platform/docs/docs/assets/img/SaveMeasurement.png"/>
+
+  <h2>Demonstration of work</h2>
+  <img src="platform/docs/docs/assets/img/workExample.gif"/>
+  <img src="platform/docs/docs/assets/img/workExample2.gif"/>
+
+  <h2>Format for saving additional information</h2>
+  <p>All segmentation masks are stored in the dicom tag "SegmentSequence" as an array. Each array element has a dicom tag "SegmentLabel", that stores additional information in the json format. </p>
+
+  <pre style="text-align: left">
+  {
+    "name": "Nodule 1",
+    "type": "Part solid",
+    "localization": 1,
+    "volume": 2213.43
+  }
+  </pre>
+
+  <h2>Functional requirements</h2>
+  <p>For a series of 100 images, about 1 gigabyte of RAM is required</p>
+  <p>To calculate diameters, it is necessary to zoom in on the image, otherwise inaccuracies in the display of diameters may occur</p>
+  <p></p>
+
+
+</div>
+
+
 <div align="center">
   <h1>OHIF Medical Imaging Viewer</h1>
   <p><strong>The OHIF Viewer</strong> is a zero-footprint medical image viewer

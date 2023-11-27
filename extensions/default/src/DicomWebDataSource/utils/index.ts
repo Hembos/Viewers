@@ -1,3 +1,4 @@
 import { fixBulkDataURI } from './fixBulkDataURI';
+import { WadoClientWithSave } from './WadoClientWithSave';
 
-export { fixBulkDataURI };
+export { fixBulkDataURI, WadoClientWithSave };

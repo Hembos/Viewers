@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { PanelSection } from '../../components';
+import { Label, PanelSection } from '../../components';
 import SegmentationConfig from './SegmentationConfig';
 import SegmentationDropDownRow from './SegmentationDropDownRow';
 import NoSegmentationRow from './NoSegmentationRow';
 import AddSegmentRow from './AddSegmentRow';
 import SegmentationGroupSegment from './SegmentationGroupSegment';
+import { Select, Icon, Button, CheckBox, InputText } from '../../components';
 
 const SegmentationGroupTable = ({
   segmentations,
@@ -13,6 +14,8 @@ const SegmentationGroupTable = ({
   segmentationConfig,
   // UI show/hide
   disableEditing,
+  showROIVolume,
+  ROIVolume,
   showAddSegmentation,
   showAddSegment,
   showDeleteSegment,
@@ -23,11 +26,16 @@ const SegmentationGroupTable = ({
   onSegmentationDelete,
   onSegmentationDownload,
   storeSegmentation,
+  saveSegmentation,
   // segment handlers
   onSegmentClick,
   onSegmentAdd,
   onSegmentDelete,
   onSegmentEdit,
+  onSegmentTypeEdit,
+  onAutoDiameter,
+  onSegmentLocalizationEdit,
+  onSegmentCapacityCalc,
   onToggleSegmentationVisibility,
   onToggleSegmentVisibility,
   onToggleSegmentLock,
@@ -69,6 +77,19 @@ const SegmentationGroupTable = ({
   const activeSegmentation = segmentations?.find(
     segmentation => segmentation.id === activeSegmentationId
   );
+
+  const segmentTypes = [
+    { label: 'Solid', value: 'Solid' },
+    { label: 'Part solid', value: 'Part solid' },
+    { label: 'Non solid (GGN)', value: 'Non solid (GGN)' },
+    { label: 'Juxtapleural', value: 'Juxtapleural' },
+    { label: 'Airway nodule', value: 'Airway nodule' },
+    { label: 'Atypical pulmonary cyst', value: 'Atypical pulmonary cyst' },
+  ];
+
+  const localizations = Array.from(Array(10).keys(), x => {
+    return { label: (x + 1).toString(), value: (x + 1).toString() };
+  });
 
   return (
     <div className="flex min-h-0 flex-col bg-black text-[13px] font-[300]">
@@ -113,6 +134,7 @@ const SegmentationGroupTable = ({
                 onSegmentationEdit={onSegmentationEdit}
                 onSegmentationDownload={onSegmentationDownload}
                 storeSegmentation={storeSegmentation}
+                saveSegmentation={saveSegmentation}
                 onSegmentationAdd={onSegmentationAdd}
                 onToggleSegmentationVisibility={onToggleSegmentationVisibility}
               />
@@ -122,6 +144,92 @@ const SegmentationGroupTable = ({
             </div>
           )}
         </div>
+        {activeSegmentation && activeSegmentation.segmentCount > 0 && (
+          <div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              {' '}
+              <Label className="flex flex-1 select-none flex-col pl-1 text-lg text-white">
+                Type
+              </Label>
+            </div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <Select
+                id="segment-type-select"
+                isClearable={false}
+                onChange={option => {
+                  onSegmentTypeEdit(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex,
+                    option.value
+                  );
+                }}
+                components={{
+                  DropdownIndicator: () => (
+                    <Icon
+                      name={'chevron-down-new'}
+                      className="mr-2"
+                    />
+                  ),
+                }}
+                isSearchable={false}
+                options={segmentTypes}
+                value={segmentTypes?.find(
+                  o =>
+                    o.value ===
+                    activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.typeNodle
+                )}
+                className="text-aqua-pale h-[26px] w-1/2 text-[13px]"
+              />
+            </div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <InputText
+                id="segment-localization-select"
+                label={'Localization'}
+                value={
+                  activeSegmentation.segments[activeSegmentation.activeSegmentIndex]?.localization
+                }
+                onChange={e => {
+                  const matches = e.match(/([0-9]|10)[abc]?(\/([0-9]|10)[abc]?)?/g);
+                  let value = matches ? matches[0] : '';
+                  value += e[value.length] !== '/' ? '' : '/';
+                  onSegmentLocalizationEdit(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex,
+                    value
+                  );
+                }}
+              ></InputText>
+            </div>
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <CheckBox
+                checked={false}
+                label={'Auto diameter'}
+                onChange={option => {
+                  onAutoDiameter(option);
+                }}
+              ></CheckBox>
+            </div>
+
+            <div className="group mx-0.5 mt-[8px] flex items-center">
+              <Button
+                onClick={() => {
+                  onSegmentCapacityCalc(
+                    activeSegmentation.id,
+                    activeSegmentation.activeSegmentIndex
+                  );
+                }}
+              >
+                Volume
+              </Button>
+            </div>
+          </div>
+        )}
+        {activeSegmentation && activeSegmentation.segmentCount > 0 && showROIVolume && (
+          <Label
+            className="text-[15px] text-white"
+            text={ROIVolume}
+          ></Label>
+        )}
         {activeSegmentation && (
           <div className="ohif-scrollbar mt-1.5 flex min-h-0 flex-col overflow-y-hidden">
             {activeSegmentation?.segments?.map(segment => {
@@ -182,6 +290,8 @@ SegmentationGroupTable.propTypes = {
   disableEditing: PropTypes.bool,
   showAddSegmentation: PropTypes.bool,
   showAddSegment: PropTypes.bool,
+  showROIVolume: PropTypes.bool,
+  ROIVolume: PropTypes.string,
   showDeleteSegment: PropTypes.bool,
   onSegmentationAdd: PropTypes.func.isRequired,
   onSegmentationEdit: PropTypes.func.isRequired,
@@ -189,10 +299,15 @@ SegmentationGroupTable.propTypes = {
   onSegmentationDelete: PropTypes.func.isRequired,
   onSegmentationDownload: PropTypes.func.isRequired,
   storeSegmentation: PropTypes.func.isRequired,
+  saveSegmentation: PropTypes.func.isRequired,
   onSegmentClick: PropTypes.func.isRequired,
   onSegmentAdd: PropTypes.func.isRequired,
   onSegmentDelete: PropTypes.func.isRequired,
   onSegmentEdit: PropTypes.func.isRequired,
+  onSegmentTypeEdit: PropTypes.func.isRequired,
+  onAutoDiameter: PropTypes.func.isRequired,
+  onSegmentLocalizationEdit: PropTypes.func.isRequired,
+  onSegmentCapacityCalc: PropTypes.func.isRequired,
   onToggleSegmentationVisibility: PropTypes.func.isRequired,
   onToggleSegmentVisibility: PropTypes.func.isRequired,
   onToggleSegmentLock: PropTypes.func.isRequired,
@@ -210,6 +325,8 @@ SegmentationGroupTable.defaultProps = {
   segmentations: [],
   disableEditing: false,
   showAddSegmentation: true,
+  showROIVolume: false,
+  ROIVolume: '',
   showAddSegment: true,
   showDeleteSegment: true,
   onSegmentationAdd: () => {},
@@ -218,10 +335,15 @@ SegmentationGroupTable.defaultProps = {
   onSegmentationDelete: () => {},
   onSegmentationDownload: () => {},
   storeSegmentation: () => {},
+  saveSegmentation: () => {},
   onSegmentClick: () => {},
   onSegmentAdd: () => {},
   onSegmentDelete: () => {},
   onSegmentEdit: () => {},
+  onSegmentTypeEdit: () => {},
+  onAutoDiameter: () => {},
+  onSegmentLocalizationEdit: () => {},
+  onSegmentCapacityCalc: () => {},
   onToggleSegmentationVisibility: () => {},
   onToggleSegmentVisibility: () => {},
   onToggleSegmentLock: () => {},
