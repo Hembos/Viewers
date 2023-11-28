@@ -3,9 +3,16 @@ import { createReportDialogPrompt } from '@ohif/extension-default';
 import storeSegmentationDialog from './panels/storeSegmentationDialog';
 import { ServicesManager, Types } from '@ohif/core';
 import { cache, metaData } from '@cornerstonejs/core';
-import { segmentation as cornerstoneToolsSegmentation } from '@cornerstonejs/tools';
-import { adaptersSEG, helpers } from '@cornerstonejs/adapters';
-import { DicomMetadataStore } from '@ohif/core';
+import {
+  segmentation as cornerstoneToolsSegmentation,
+  Enums as cornerstoneToolsEnums,
+} from '@cornerstonejs/tools';
+import { adaptersRT, helpers, adaptersSEG } from '@cornerstonejs/adapters';
+import { classes, DicomMetadataStore } from '@ohif/core';
+
+import vtkImageMarchingSquares from '@kitware/vtk.js/Filters/General/ImageMarchingSquares';
+import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
+import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 
 import {
   updateViewportsForSegmentationRendering,
@@ -13,11 +20,19 @@ import {
   getTargetViewport,
 } from './utils/hydrationUtils';
 
+const { datasetToBlob } = dcmjs.data;
+
 const {
   Cornerstone3D: {
     Segmentation: { generateLabelMaps2DFrom3D, generateSegmentation },
   },
 } = adaptersSEG;
+
+const {
+  Cornerstone3D: {
+    RTSS: { generateRTSSFromSegmentations },
+  },
+} = adaptersRT;
 
 const { downloadDICOMData } = helpers;
 

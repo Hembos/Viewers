@@ -7,7 +7,6 @@ import {
   geometryLoader,
   eventTarget,
   getEnabledElementByIds,
-  metaData,
   utilities as csUtils,
   volumeLoader,
 } from '@cornerstonejs/core';
@@ -43,7 +42,7 @@ const EVENTS = {
   SEGMENTATION_CONFIGURATION_CHANGED: 'event::segmentation_configuration_changed',
   // fired when the active segment is loaded in SEG or RTSTRUCT
   SEGMENT_LOADING_COMPLETE: 'event::segment_loading_complete',
-  // for all segments
+  // loading completed for all segments
   SEGMENTATION_LOADING_COMPLETE: 'event::segmentation_loading_complete',
 };
 
@@ -135,7 +134,7 @@ class SegmentationService extends PubSubService {
       throw new Error('Segment index 0 is reserved for "no label"');
     }
 
-    const toolGroupId = config.toolGroupId ?? this._getFirstToolGroupId();
+    const toolGroupId = config.toolGroupId ?? this._getApplicableToolGroupId();
 
     const { segmentationRepresentationUID, segmentation } = this._getSegmentationInfo(
       segmentationId,
@@ -194,7 +193,7 @@ class SegmentationService extends PubSubService {
         );
       }
 
-      if (active !== undefined) {
+      if (active === true) {
         this._setActiveSegment(segmentationId, segmentIndex, suppressEvents);
       }
 
@@ -370,7 +369,7 @@ class SegmentationService extends PubSubService {
   }
 
   public setActiveSegmentationForToolGroup(segmentationId: string, toolGroupId?: string): void {
-    toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
+    toolGroupId = toolGroupId ?? this._getApplicableToolGroupId();
 
     const suppressEvents = false;
     this._setActiveSegmentationForToolGroup(segmentationId, toolGroupId, suppressEvents);
@@ -406,6 +405,23 @@ class SegmentationService extends PubSubService {
   private _getSegmentations(): Segmentation[] {
     const segmentations = this.arrayOfObjects(this.segmentations);
     return segmentations && segmentations.map(m => this.segmentations[Object.keys(m)[0]]);
+  }
+
+  public getActiveSegmentation(): Segmentation {
+    const segmentations = this.getSegmentations();
+
+    return segmentations.find(segmentation => segmentation.isActive);
+  }
+
+  public getActiveSegment() {
+    const activeSegmentation = this.getActiveSegmentation();
+    const { activeSegmentIndex, segments } = activeSegmentation;
+
+    if (activeSegmentIndex === null) {
+      return;
+    }
+
+    return segments[activeSegmentIndex];
   }
 
   /**
@@ -551,7 +567,7 @@ class SegmentationService extends PubSubService {
       volumeId: segmentationId,
       targetBuffer: {
         type: 'Uint8Array',
-        sharedArrayBuffer: true,
+        sharedArrayBuffer: window.SharedArrayBuffer,
       },
     });
     const derivedVolumeScalarData = derivedVolume.getScalarData();
@@ -923,7 +939,7 @@ class SegmentationService extends PubSubService {
     }
 
     const segmentation = this.getSegmentation(segmentationId);
-    toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
+    toolGroupId = toolGroupId ?? this._getApplicableToolGroupId();
 
     const segmentationRepresentation = this._getSegmentationRepresentation(
       segmentationId,
@@ -974,7 +990,7 @@ class SegmentationService extends PubSubService {
       volumeId: segmentationId,
       targetBuffer: {
         type: 'Uint8Array',
-        sharedArrayBuffer: true,
+        sharedArrayBuffer: window.SharedArrayBuffer,
       },
     });
 
@@ -1324,7 +1340,7 @@ class SegmentationService extends PubSubService {
       if (remainingHydratedSegmentations.length) {
         const { id } = remainingHydratedSegmentations[0];
 
-        this._setActiveSegmentationForToolGroup(id, this._getFirstToolGroupId(), false);
+        this._setActiveSegmentationForToolGroup(id, this._getApplicableToolGroupId(), false);
       }
     }
 
@@ -1336,7 +1352,7 @@ class SegmentationService extends PubSubService {
   }
 
   public getConfiguration = (toolGroupId?: string): SegmentationConfig => {
-    toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
+    toolGroupId = toolGroupId ?? this._getApplicableToolGroupId();
 
     const brushSize = 1;
     // const brushSize = cstUtils.segmentation.getBrushSizeForToolGroup(
@@ -1732,7 +1748,7 @@ class SegmentationService extends PubSubService {
       throw new Error(`Segment ${segmentIndex} not yet added to segmentation: ${segmentationId}`);
     }
 
-    toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
+    toolGroupId = toolGroupId ?? this._getApplicableToolGroupId();
 
     const segmentationRepresentation = this._getSegmentationRepresentation(
       segmentationId,
@@ -1826,7 +1842,7 @@ class SegmentationService extends PubSubService {
     toolGroupId?: string,
     suppressEvents = false
   ) {
-    toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
+    toolGroupId = toolGroupId ?? this._getApplicableToolGroupId();
 
     const { segmentationRepresentationUID, segmentation } = this._getSegmentationInfo(
       segmentationId,
@@ -1885,7 +1901,7 @@ class SegmentationService extends PubSubService {
       throw new Error(`Segment ${segmentIndex} not yet added to segmentation: ${segmentationId}`);
     }
 
-    toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
+    toolGroupId = toolGroupId ?? this._getApplicableToolGroupId();
 
     const segmentationRepresentation = this._getSegmentationRepresentation(
       segmentationId,
@@ -2202,11 +2218,21 @@ class SegmentationService extends PubSubService {
     }
   }
 
-  private _getFirstToolGroupId = () => {
-    const { toolGroupService } = this.servicesManager.services;
-    const toolGroupIds = toolGroupService.getToolGroupIds();
+  private _getApplicableToolGroupId = () => {
+    const { toolGroupService, viewportGridService, cornerstoneViewportService } =
+      this.servicesManager.services;
 
-    return toolGroupIds[0];
+    const viewportInfo = cornerstoneViewportService.getViewportInfo(
+      viewportGridService.getActiveViewportId()
+    );
+
+    if (!viewportInfo) {
+      const toolGroupIds = toolGroupService.getToolGroupIds();
+
+      return toolGroupIds[0];
+    }
+
+    return viewportInfo.getToolGroupId();
   };
 
   private getNextColorLUTIndex = (): number => {
